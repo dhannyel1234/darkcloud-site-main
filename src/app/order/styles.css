@@ -1,0 +1,228 @@
+/* Estilos metálicos para a página de pedidos */
+
+/* Efeito de estrelas no fundo */
+.stars-small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #fff;
+  animation: animateStars 50s linear infinite;
+  z-index: -1;
+}
+
+.stars-small:after {
+  content: " ";
+  position: absolute;
+  top: 100vh;
+  width: 1px;
+  height: 1px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #fff;
+}
+
+.stars-medium {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 4px #fff;
+  animation: animateStars 100s linear infinite;
+  z-index: -1;
+}
+
+.stars-medium:after {
+  content: " ";
+  position: absolute;
+  top: 100vh;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 4px #fff;
+}
+
+.stars-large {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 5px #fff;
+  animation: animateStars 150s linear infinite;
+  z-index: -1;
+}
+
+.stars-large:after {
+  content: " ";
+  position: absolute;
+  top: 100vh;
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 5px #fff;
+}
+
+@keyframes animateStars {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100vh);
+  }
+}
+
+/* Animação de bounce horizontal para ícones */
+@keyframes bounce-x {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+}
+
+.animate-bounce-x {
+  animation: bounce-x 1s ease-in-out infinite;
+}
+
+/* Animação de rotação lenta */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Estilos metálicos */
+.order-metallic-card {
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.order-metallic-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: all 0.75s ease;
+}
+
+.order-metallic-card:hover::before {
+  left: 100%;
+}
+
+.order-metallic-text {
+  background: linear-gradient(to right, #c0c0c0, #ffffff, #a0a0a0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.order-metallic-button {
+  background: linear-gradient(145deg, #333333, #222222);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.order-metallic-button:hover {
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.order-metallic-button:active {
+  background: linear-gradient(145deg, #222222, #333333);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.7),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(1px);
+}
+
+.order-metallic-border {
+  border: 1px solid transparent;
+  border-image: linear-gradient(to right, #333333, #999999, #333333);
+  border-image-slice: 1;
+}
+
+.order-metallic-glow {
+  box-shadow: 
+    0 0 5px rgba(192, 192, 192, 0.2),
+    0 0 10px rgba(192, 192, 192, 0.1),
+    0 0 15px rgba(192, 192, 192, 0.05);
+}
+
+.order-brushed-metal {
+  background: 
+    linear-gradient(45deg, rgba(160, 160, 160, 0.15) 25%, transparent 25%, transparent 75%, rgba(160, 160, 160, 0.15) 75%, rgba(160, 160, 160, 0.15)),
+    linear-gradient(45deg, rgba(160, 160, 160, 0.15) 25%, transparent 25%, transparent 75%, rgba(160, 160, 160, 0.15) 75%, rgba(160, 160, 160, 0.15)),
+    linear-gradient(to bottom, #1a1a1a, #2a2a2a);
+  background-size: 4px 4px, 4px 4px, 100% 100%;
+  background-position: 0 0, 2px 2px, 0 0;
+}
+
+/* Efeito de brilho para elementos selecionados */
+.order-selected-plan {
+  position: relative;
+  overflow: hidden;
+}
+
+.order-selected-plan::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.order-selected-plan:hover::after {
+  opacity: 1;
+}
+
+/* Efeito de pulso para elementos importantes */
+@keyframes metallic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+.order-pulse {
+  animation: metallic-pulse 2s infinite;
+}
