@@ -28,7 +28,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4 NÚCLEOS"
       ],
       recommended: false,
-      url: "https://livepix.gg/dhannyel/dark-alfa"
+      url: "https://openpix.com.br/pay/feefa736-cbba-4869-aebe-42b9542c83c7"
     },
     {
       name: "Omega",
@@ -46,7 +46,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4 NÚCLEOS"
       ],
       recommended: false,
-      url: "https://livepix.gg/dhannyel/dark-omega"
+      url: "https://openpix.com.br/pay/70233564-3191-4b66-b30f-e756f950145b"
     },
     {
       name: "Beta",
@@ -64,7 +64,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4 NÚCLEOS"
       ],
       recommended: false,
-      url: "https://livepix.gg/dhannyel/beta"
+      url: "https://openpix.com.br/pay/66fbfaaa-e1ed-46c0-b985-b61fb2cd9c21"
     },
     {
       name: "Prime",
