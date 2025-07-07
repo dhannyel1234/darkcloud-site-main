@@ -18,7 +18,19 @@ export async function connect() {
 
   try {
     console.log('🔄 Tentando conectar ao MongoDB...');
-    await mongoose.connect(MONGODB_URI);
+    
+    // Configurações de conexão
+    const options = {
+      serverSelectionTimeoutMS: 30000, // Timeout de 30 segundos
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 30000,
+      maxPoolSize: 10,
+      minPoolSize: 1,
+      retryWrites: true,
+      retryReads: true
+    };
+
+    await mongoose.connect(MONGODB_URI, options);
     isConnected = true;
     console.log('✅ Conectado ao MongoDB com sucesso');
     
