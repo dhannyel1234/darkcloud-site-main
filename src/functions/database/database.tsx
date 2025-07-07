@@ -17,18 +17,30 @@ const MAX_RETRIES = 3;
 let mongoClient: MongoClient | null = null;
 
 export async function connect() {
-  if (isConnected && mongoose.connection.readyState === 1) {
-    console.log('✅ Já conectado ao MongoDB');
-    return mongoose.connection;
-  }
-
   try {
+    // Verificar se já está conectado
+    if (isConnected && mongoose.connection.readyState === 1 && mongoClient?.topology?.isConnected()) {
+      console.log('✅ Já conectado ao MongoDB');
+      return mongoose.connection;
+    }
+
     connectionAttempts++;
     console.log(`🔄 Tentativa ${connectionAttempts} de ${MAX_RETRIES} de conectar ao MongoDB...`);
     
     // Primeiro, tentar conectar usando o MongoClient nativo
-    if (!mongoClient) {
+    if (!mongoClient || !mongoClient.topology?.isConnected()) {
       console.log('🔄 Iniciando conexão com MongoClient...');
+      
+      // Se já existe um cliente, tentar fechar primeiro
+      if (mongoClient) {
+        try {
+          await mongoClient.close();
+          console.log('✅ Conexão anterior fechada com sucesso');
+        } catch (error) {
+          console.warn('⚠️ Erro ao fechar conexão anterior:', error);
+        }
+      }
+      
       mongoClient = new MongoClient(MONGODB_URI, {
         serverSelectionTimeoutMS: 60000,
         connectTimeoutMS: 45000,
@@ -37,9 +49,20 @@ export async function connect() {
       
       await mongoClient.connect();
       console.log('✅ MongoClient conectado com sucesso');
+      
+      // Testar a conexão
+      const adminDb = mongoClient.db().admin();
+      await adminDb.ping();
+      console.log('✅ Ping ao MongoDB respondido com sucesso');
     }
     
-    // Agora conectar o Mongoose usando a conexão existente
+    // Se o mongoose já estiver conectado, desconectar primeiro
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+      console.log('✅ Conexão Mongoose anterior fechada');
+    }
+    
+    // Agora conectar o Mongoose
     console.log('🔄 Configurando Mongoose...');
     await mongoose.connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 60000,
@@ -73,9 +96,17 @@ export async function connect() {
       isConnected = true;
     });
     
-    // Listar todas as coleções para debug
-    const collections = await mongoose.connection.db.collections();
-    console.log('📚 Coleções disponíveis:', collections.map(c => c.collectionName));
+    // Verificar se temos acesso ao banco e suas coleções
+    try {
+      if (mongoose.connection.db) {
+        const collections = await mongoose.connection.db.collections();
+        console.log('📚 Coleções disponíveis:', collections.map(c => c.collectionName));
+      } else {
+        console.warn('⚠️ mongoose.connection.db não está disponível ainda');
+      }
+    } catch (error) {
+      console.warn('⚠️ Erro ao listar coleções:', error);
+    }
     
     return mongoose.connection;
     
