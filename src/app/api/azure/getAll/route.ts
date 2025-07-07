@@ -135,13 +135,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
         return NextResponse.json(vmDetails, { status: 200 });
     } catch (err) {
-        return NextResponse.json(
-            {
-                message: "Error when fetching machines",
-                support: '@dump.ts'
-            },
-            { status: 500 }
-        );
+        console.error('Erro ao buscar máquinas:', err);
+        return NextResponse.json([], { status: 200 });
     };
 };
 

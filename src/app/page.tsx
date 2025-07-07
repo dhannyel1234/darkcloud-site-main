@@ -150,7 +150,7 @@ const videos = [
               >
 
                  <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 px-4 py-2 rounded-full mb-6 hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-                <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+                <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
                 <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud</span>
               </div>
 
@@ -241,7 +241,7 @@ const videos = [
               className="flex justify-center mb-4 flex-col items-center"
             >
               <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 bg-blue-950/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-                <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+                <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
                 <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud | FAQ</span>
               </div>
               
@@ -298,7 +298,7 @@ const videos = [
           <div className="mt-24 max-w-5xl mx-auto">
             <div className="flex justify-center mb-12 flex-col items-center">
               <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 bg-blue-950/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-                <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+                <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
                 <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud | Tutoriais</span>
               </div>
               
@@ -382,7 +382,7 @@ const videos = [
               className="flex justify-center mb-4 flex-col items-center"
             >         
               <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 bg-blue-950/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-                <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+                <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
                 <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud | Games</span>
               </div>
               
@@ -486,7 +486,7 @@ const videos = [
               className="flex justify-center mb-4 flex-col items-center"
             >         
               <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 bg-blue-950/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-                <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+                <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
                 <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud | Conexões</span>
               </div>
               

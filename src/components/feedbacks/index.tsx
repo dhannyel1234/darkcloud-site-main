@@ -2,6 +2,7 @@
 
 import { Star, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const feedbacks = [
     {
@@ -55,8 +56,10 @@ export default function Feedbacks() {
       <div className="relative z-10 container mx-auto px-4 max-w-5xl">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center gap-2 text-sm text-blue-300 bg-blue-950/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm hover:bg-blue-900/40 transition-all duration-300 group border border-blue-500/20">
-            <img src="/darkcloud.png" className="h-4 w-4 text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
-            <span className="group-hover:text-blue-300 transition-colors duration-300">DarkCloud | Depoimentos</span>
+            <div className="flex items-center gap-2">
+              <Image src="/darkcloud.png" alt="DarkCloud" width={16} height={16} className="text-blue-400 group-hover:text-blue-300 group-hover:animate-pulse" />
+              <h1 className="text-lg font-bold">DarkCloud</h1>
+            </div>
           </div>
           
           <h2 className="mb-6 text-4xl font-bold tracking-tight text-white">
@@ -86,7 +89,7 @@ export default function Feedbacks() {
               <div className="flex items-start gap-5">
                 <div className="shrink-0">
                   <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-blue-900/50 group-hover:border-[#9D86F9]/50 transition-all duration-300 shadow-md">
-                    <img 
+                    <Image 
                       src={feedback.avatarUrl} 
                       alt={feedback.name} 
                       className="w-full h-full object-cover"
@@ -96,7 +99,13 @@ export default function Feedbacks() {
                 
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-medium text-white">{feedback.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <Image src={feedback.avatarUrl} alt={feedback.name} width={32} height={32} className="rounded-full" />
+                      <div>
+                        <h3 className="font-medium">{feedback.name}</h3>
+                        <p className="text-sm text-gray-500">{feedback.date}</p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="inline-flex px-3 py-1 rounded-full text-xs bg-blue-900/30 text-[#9D86F9] border border-[#9D86F9]/30">
                         {feedback.game}
@@ -112,8 +121,6 @@ export default function Feedbacks() {
                       </div>
                     </div>
                   </div>
-                  
-                  <p className="text-xs text-gray-400 mb-3">{feedback.date}</p>
                   
                   <div className="relative">
                     <span className="absolute -top-3 -left-2 text-4xl text-[#9D86F9]/30">"</span>

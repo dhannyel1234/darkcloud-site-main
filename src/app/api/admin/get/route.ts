@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // controllers
 import adminController from '@/functions/database/controllers/AdminController';
+import { UserPlanController } from '@/functions/database/controllers/UserPlanController';
 
 export async function GET(req: NextRequest) {
     try {
@@ -28,7 +29,15 @@ export async function GET(req: NextRequest) {
             );
         };
 
-        return NextResponse.json(dbAdmin, { status: 200 });
+        // Buscar planos ativos do usuário
+        const userPlanController = UserPlanController.getInstance();
+        const activePlans = await userPlanController.getActivePlans();
+
+        return NextResponse.json({
+            isAdmin: true,
+            ...dbAdmin.toObject(),
+            activePlans
+        }, { status: 200 });
     } catch (err) {
         return NextResponse.json(
             {

@@ -89,92 +89,42 @@ export default function Dashboard() {
     }, [machines]);
 
     useEffect(() => {
-        // Verificar se estamos navegando do cabeçalho e limpar o flag
-        const isNavigatingFromHeader = localStorage.getItem('navigatingToDashboard') === 'true';
-        if (isNavigatingFromHeader) {
-            localStorage.removeItem('navigatingToDashboard');
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchParam = urlParams.get('search') || "";
-
         const allFetch = async () => {
             try {
                 const checkSession = async () => {
-                    // Tentar obter a sessão do localStorage primeiro
                     const cachedSession = localStorage.getItem('session');
                     if (cachedSession) {
-                        try {
-                            const parsedSession = JSON.parse(cachedSession);
-                            setSession(parsedSession);
-                            setLoading(false);
-                            return;
-                        } catch (e) {
-                            // Se houver erro ao analisar a sessão em cache, remover e continuar
-                            localStorage.removeItem('session');
-                        }
-                    }
-                    
-                    // Se não houver sessão em cache ou houver erro, obter nova sessão
-                    const session = await getSession();
-                    if (session) {
-                        setSession(session);
+                        setSession(JSON.parse(cachedSession));
                         setLoading(false);
-                        localStorage.setItem('session', JSON.stringify(session));
+                        return;
                     } else {
-                        signIn('discord', { redirect: true });
-                    };
-
-                    return;
+                        const session = await getSession();
+                        if (session) {
+                            setSession(session);
+                            setLoading(false);
+                            localStorage.setItem('session', JSON.stringify(session));
+                        } else {
+                            signIn('discord', { redirect: true });
+                        }
+                        return;
+                    }
                 };
                 const checkMachines = async () => {
-                    const cachedSession = localStorage.getItem('session');
-                    const jsonSession = cachedSession ? JSON.parse(cachedSession) : session;
-
-                    const response = await fetch(`/api/machine/getAllUser?userId=${jsonSession?.user.id}`);
-                    const machinesData = await response.json();
-
-                    const machines = (await Promise.all(
-                        machinesData.map(async (machine: any) => {
-                            const responseAzure = await fetch(`/api/azure/get?name=${machine.name}`);
-                            const dataAzure = await responseAzure.json();
-                            if (!dataAzure.message) {
-                                return {
-                                    name: machine.name,
-                                    surname: machine.surname,
-                                    expiration: machine.expirationDate,
-                                    plan: { expiration: machine.plan.expirationDate, name: machine.plan.name },
-                                    connect: { user: machine.connect.user, password: machine.connect.password },
-                                    openedInvoice: machine.openedInvoice,
-                                    ip: dataAzure.publicIp || 'Não encontrado',
-                                    status: dataAzure.powerState && dataAzure.powerState[1] && dataAzure.powerState[1].code
-                                        ? dataAzure.powerState[1].code.replace('PowerState/', '')
-                                        : 'deallocated',
-                                    image: dataAzure.vmInfo.storageProfile.osDisk.osType || "Não encontrado",
-                                    host: machine.host,
-                                    creating: dataAzure.powerState && dataAzure.powerState[0] && dataAzure.powerState[0].code === 'PowerState/creating'
-                                        ? true
-                                        : false,
-                                };
-                            };
-
-                            return null;
-                        })
-                    )).filter(machine => machine !== null);
-
-                    setMachines(machines);
+                    const response = await fetch(`/api/machine/getAllUser?user_id=${session?.user.id}`);
+                    const data = await response.json();
+                    if (data.message) {
+                        setMachines([]);
+                        setLoadingMachines(false);
+                        return;
+                    };
+                    setMachines(data);
                     setLoadingMachines(false);
                 };
 
                 checkSession();
                 checkMachines();
-
-                const filtered = searchParam
-                    ? machines.filter((machine) => machine.surname.toLowerCase().includes(searchParam.toLowerCase()))
-                    : machines;
-                setFilteredMachines(filtered);
             } catch (err) {
-                toast({
+                return toast({
                     title: `Erro`,
                     description: `Ocorreu um erro inesperado: ${err}`
                 });
@@ -182,50 +132,23 @@ export default function Dashboard() {
         };
 
         allFetch();
-    }, [toast]);  // Removed 'machines' from dependency array to prevent infinite API calls
+    }, [session, machines, toast]);
 
-    // Refresh machines [Handle]
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(async () => {
         setLoadingMachines(true);
 
-        const cachedSession = localStorage.getItem('session');
-        const jsonSession = cachedSession ? JSON.parse(cachedSession) : session;
-
-        const response = await fetch(`/api/machine/getAllUser?userId=${jsonSession?.user.id}`);
-        const machinesData = await response.json();
-        console.log('Initial machines data:', machinesData);
-
-        const machines = (await Promise.all(
-            machinesData.map(async (machine: any) => {
-                const responseAzure = await fetch(`/api/azure/get?name=${machine.name}`);
-                const dataAzure = await responseAzure.json();
-                console.log(`Azure response for ${machine.name}:`, dataAzure);
-                // Return machine info regardless of Azure data availability
-                return {
-                    name: machine.name,
-                    surname: machine.surname,
-                    expiration: machine.expirationDate,
-                    plan: { expiration: machine.plan.expirationDate, name: machine.plan.name },
-                    connect: { user: machine.connect.user, password: machine.connect.password },
-                    openedInvoice: machine.openedInvoice,
-                    ip: dataAzure.publicIp || 'Não disponível',
-                    status: dataAzure.message ? 'error' : (dataAzure.powerState && dataAzure.powerState[1] && dataAzure.powerState[1].code
-                        ? dataAzure.powerState[1].code.replace('PowerState/', '')
-                        : 'deallocated'),
-                    image: dataAzure.message ? 'Não disponível' : (dataAzure.vmInfo?.storageProfile?.osDisk?.osType || "Não encontrado"),
-                    host: machine.host,
-                    creating: !dataAzure.message && dataAzure.powerState && dataAzure.powerState[0] && dataAzure.powerState[0].code === 'PowerState/creating',
-                    error: dataAzure.message || undefined
-                };
-            })
-        ));
-
-        console.log('Final machines data:', machines);
-        setMachines(machines);
+        const response = await fetch(`/api/machine/getAllUser?user_id=${session?.user.id}`);
+        const data = await response.json();
+        if (data.message) {
+            setMachines([]);
+            setLoadingMachines(false);
+            return;
+        };
+        setMachines(data);
         setLoadingMachines(false);
-    };
+    }, [session]);
 
-    // Refresh specific machine [Handle]
+    // Refresh machines [Handle]
     const handleRefreshMachine = async (index: string, name: string) => {
         try {
             const response = await fetch(`/api/azure/get?name=${name}`);

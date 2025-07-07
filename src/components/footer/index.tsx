@@ -34,14 +34,14 @@ export default function Footer() {
     const [stars, setStars] = useState<Star[]>([]);
 
     useEffect(() => {
-        // Criar estrelas aleatórias para o fundo apenas no cliente
+        // Criar estrelas com posições fixas baseadas no índice para evitar hydration mismatch
         setStars(Array.from({ length: 50 }).map((_, i) => ({
             id: i,
-            size: Math.random() * 2 + 1,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            opacity: Math.random() * 0.7 + 0.3,
-            duration: Math.random() * 10 + 5
+            size: 1 + (i % 3), // Tamanho fixo baseado no índice
+            x: (i * 2) % 100, // Posição X fixa baseada no índice
+            y: (i * 3) % 100, // Posição Y fixa baseada no índice
+            opacity: 0.3 + ((i % 5) * 0.1), // Opacidade fixa baseada no índice
+            duration: 10 + (i % 5) // Duração fixa baseada no índice
         })));
     }, []);
 
@@ -115,7 +115,7 @@ export default function Footer() {
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
                         <div className="relative">
-                            <Image src="/darkcloud.png" alt="Dark Cloud Logo" width={48} height={48} className="relative z-10" priority />
+                            <Image src="/darkcloud.png" alt="Dark Cloud Logo" width={48} height={48} sizes="48px" className="relative z-10" priority />
                             <motion.div 
                                 className="absolute -inset-1 rounded-full blur-md bg-blue-500/20"
                                 animate={{ 

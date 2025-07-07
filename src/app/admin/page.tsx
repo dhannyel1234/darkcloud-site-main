@@ -88,6 +88,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import QueueTab from '@/components/admin/QueueTab/index';
 
 export default function Dashboard() {
     const { toast } = useToast();
@@ -127,6 +128,9 @@ export default function Dashboard() {
 
     const [isLoadingMachines, setLoadingMachines] = useState(true);
     const [isLoading, setLoading] = useState(true);
+
+    const [activeTab, setActiveTab] = useState('machines');
+
     useEffect(() => {
         const allFetch = async () => {
             try {
@@ -161,9 +165,9 @@ export default function Dashboard() {
                 const checkMachines = async () => {
                     const response = await fetch(`/api/azure/getAll`);
                     const machinesAzure = await response.json();
-
+                    const machinesArray = Array.isArray(machinesAzure) ? machinesAzure : [];
                     const machines = await Promise.all(
-                        machinesAzure.map(async (machine: any) => {
+                        machinesArray.map(async (machine: any) => {
                             const responseMachines = await fetch(`/api/machine/get?name=${machine?.vmInfo.name}`);
                             const dataMachines = await responseMachines.json();
                             if (dataMachines && !dataMachines.message) {
@@ -219,12 +223,13 @@ export default function Dashboard() {
         const snapshotsFetch = async () => {
             const response = await fetch('/api/azure/snapshot/getAll');
             const data = await response.json();
-            setSnapshots(data);
+            setSnapshots(Array.isArray(data) ? data : []);
         };
 
         allFetch();
         snapshotsFetch();
-    }, [toast]);
+    }, [toast, router, session]);
+
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const searchParam = urlParams.get('search') || "";
@@ -234,17 +239,17 @@ export default function Dashboard() {
             ? machines.filter((machine) => machine.name.toLowerCase().includes(searchParam.toLowerCase()))
             : machines;
         setFilteredMachines(filtered);
-    }, [machines]);
+    }, [machines, isSearch]);
 
     // Refresh machines [Handle]
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(async () => {
         setLoadingMachines(true);
 
         const response = await fetch(`/api/azure/getAll`);
         const machinesAzure = await response.json();
-
+        const machinesArray = Array.isArray(machinesAzure) ? machinesAzure : [];
         const machines = await Promise.all(
-            machinesAzure.map(async (machine: any) => {
+            machinesArray.map(async (machine: any) => {
                 const responseMachines = await fetch(`/api/machine/get?name=${machine?.vmInfo.name}`);
                 const dataMachines = await responseMachines.json();
                 if (dataMachines && !dataMachines.message) {
@@ -279,13 +284,13 @@ export default function Dashboard() {
                         image: machine.vmInfo.storageProfile.osDisk.osType || "Não encontrado",
                         host: "azure"
                     };
-                }
+                };
             })
         );
 
         setMachines(machines);
         setLoadingMachines(false);
-    };
+    }, []);
 
     // Refresh specific machine [Handle]
     const handleRefreshMachine = async (index: number, name: string) => {
@@ -509,9 +514,10 @@ export default function Dashboard() {
                     </div>
 
                     {/* Options */}
-                    <Tabs defaultValue="machines" onValueChange={handleTabChange} className="space-y-6">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                         <TabsList className="bg-transparent border-b border-gray-800 w-full justify-start h-auto p-0 space-x-4">
                             <TabsTrigger value="machines" className="bg-transparent px-0 pb-3 ml-2 rounded-none">Máquinas</TabsTrigger>
+                            <TabsTrigger value="filas" className="bg-transparent px-0 pb-3 ml-2 rounded-none">Filas</TabsTrigger>
                         </TabsList>
 
                         {/* Content [Animate] */}
@@ -599,7 +605,7 @@ export default function Dashboard() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectGroup className="bg-[#10111782]">
-                                                                {snapshots.map((snapshot, index) => (
+                                                                {Array.isArray(snapshots) && snapshots.map((snapshot, index) => (
                                                                     <SelectItem key={index} value={snapshot.id}>
                                                                         {snapshot.name}
                                                                     </SelectItem>
@@ -1005,7 +1011,7 @@ export default function Dashboard() {
                                                                                                 });
                                                                                             } else {
                                                                                                 toast({
-                                                                                                    title: "Erro na Atualiza��ão",
+                                                                                                    title: "Erro na Atualização",
                                                                                                     description: `Ocorreu um erro ao tentar atualizar o plano da máquina ${machine.name}.`
                                                                                                 });
 
@@ -1463,6 +1469,10 @@ export default function Dashboard() {
                                         ))}
                                     </div>
                                 )}
+                            </TabsContent>
+                            
+                            <TabsContent value="filas" className="space-y-6">
+                                <QueueTab />
                             </TabsContent>
                         </motion.div>
                     </Tabs>

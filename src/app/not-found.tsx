@@ -17,7 +17,7 @@ export default function NotFound() {
         <div className="container mx-auto flex justify-between items-center py-4 px-6">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Image src="/darkcloud.png" width={32} height={32} alt="DarkCloud Logo" />
+              <Image src="/darkcloud.png" width={32} height={32} alt="DarkCloud Logo" sizes="32px" />
             </Link>
           </div>
           <div className="flex items-center gap-6">
@@ -37,7 +37,7 @@ export default function NotFound() {
       <div className="z-10 text-center px-6 mt-20">
         {/* Logo grande */}
         <div className="flex justify-center mb-12">
-          <Image src="/darkcloud.png" width={120} height={120} alt="DarkCloud Logo" className="mb-4" />
+          <Image src="/darkcloud.png" width={120} height={120} alt="DarkCloud Logo" className="mb-4" sizes="120px" />
           <span className="sr-only">DARKCLOUD</span>
         </div>
         

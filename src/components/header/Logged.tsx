@@ -241,6 +241,17 @@ export default function LoggedComponent({ user }: { user: User }) {
                   </div>
                   <span className="text-white/80 group-hover:text-white transition-colors">Painel de Controle</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.location.href = '/queue';
+                  }}
+                  className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-cyan-500/10 focus:bg-white/5 transition-all group"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+                      <Users className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <span className="text-white/80 group-hover:text-white transition-colors">Entrar na fila</span>
+                </DropdownMenuItem>
 
                                 {/* Admin [Menu] */}
                                 {isAdmin && (
@@ -279,7 +290,7 @@ export default function LoggedComponent({ user }: { user: User }) {
                                                             <DropdownMenuSeparator />
 
                                                             {/* Editar Estoque [Estoque] */}
-                                                            <DropdownMenuItem className="focus:bg-transparent" onSelect={(e) => e.preventDefault()} onFocus={(e) => e.stopPropagation()}>
+                                                            <DropdownMenuItem className="focus:bg-transparent" onSelect={(e: any) => e.preventDefault()} onFocus={(e: any) => e.stopPropagation()}>
                                                                 <div className="w-full flex flex-col gap-2">
                                                                     <Input id="id" placeholder="Novo estoque" type="number" disabled={isLoading_EditStock}
                                                                         onChange={(e) => { setStockQuantity_Input(Number(e.target.value)) }}

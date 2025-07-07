@@ -4,6 +4,7 @@ import { getSession, signIn } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from 'next/link';
 
 import {
     Lock,
@@ -142,13 +143,17 @@ export default function Order() {
 
             try {
                 const generateId = async () => {
-                    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                    let result = '';
-                    for (let i = 0; i < 24; i++) {
-                        result += characters.charAt(Math.floor(Math.random() * characters.length));
-                    };
-
-                    return result;
+                    // Usar crypto.randomUUID() se disponível, senão usar timestamp + índice
+                    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                        return crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+                    }
+                    
+                    // Fallback: usar timestamp + índice para evitar Math.random()
+                    const timestamp = Date.now().toString(36);
+                    const randomPart = Array.from({ length: 24 - timestamp.length }, (_, i) => 
+                        'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[i % 36]
+                    ).join('');
+                    return timestamp + randomPart;
                 };
 
                 const cachedSession = JSON.parse(localStorage.getItem('session') || '{}');
@@ -473,7 +478,7 @@ export default function Order() {
         } rounded-lg px-4 py-3 placeholder-gray-500 focus:outline-none focus:ring-2 
         focus:ring-purple-500/30 focus:border-purple-500/50 transition-all duration-200
         ${(isLoading || isStockQuantity < 1 || isCouponApplied) ? 'opacity-70 cursor-not-allowed' : ''}`}
-        disabled={isLoading || isStockQuantity < 1 || isCouponApplied}
+        disabled={isLoading || isStockQuantity < 1 || isCouponLoading || isCouponApplied || !couponCode.trim()}
       />
       
       <div className="absolute right-2 top-2">
@@ -705,7 +710,7 @@ export default function Order() {
     
     <div className="text-center text-sm flex items-center justify-center space-x-1 text-gray-400">
       <HelpCircle className="w-4 h-4" />
-      <p>Precisa de ajuda? <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">Contate o suporte</a></p>
+      <p>Precisa de ajuda? <Link href="/support" className="text-indigo-400 hover:text-indigo-300 transition-colors">Contate o suporte</Link></p>
     </div>
   </div>
 </motion.div>

@@ -282,17 +282,17 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
                   <motion.div 
                     key={i}
                     initial={{ 
-                      x: Math.random() * 100 - 50, 
-                      y: Math.random() * 100 + 50, 
-                      opacity: 0.3 
+                      opacity: 0.3,
+                      x: (i * 30) - 15, // Posição fixa baseada no índice
+                      y: (i * 20) + 10
                     }}
                     animate={{ 
-                      y: [Math.random() * 100 + 50, Math.random() * -100 - 50],
                       opacity: [0.4, 0],
+                      y: [(i * 20) + 10, (i * 20) - 20] // Movimento fixo
                     }}
                     transition={{ 
                       repeat: Infinity, 
-                      duration: Math.random() * 10 + 10,
+                      duration: 10 + (i * 2), // Duração fixa com variação baseada no índice
                       repeatType: "reverse"
                     }}
                     className="absolute w-2 h-2 rounded-full bg-blue-400/40"
