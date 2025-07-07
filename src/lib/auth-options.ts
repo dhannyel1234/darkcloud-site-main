@@ -14,30 +14,32 @@ declare module "next-auth" {
   }
 }
 
-const providers = [];
-
-// Adiciona o provedor Discord apenas se as credenciais estiverem configuradas
-if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
-  providers.push(
-    DiscordProvider({
-      clientId: process.env.DISCORD_CLIENT_ID,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    })
-  );
-}
-
 // Definindo as opções de autenticação
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  providers,
+  providers: [
+    DiscordProvider({
+      clientId: process.env.DISCORD_CLIENT_ID || "",
+      clientSecret: process.env.DISCORD_CLIENT_SECRET || "",
+    })
+  ],
+  pages: {
+    signIn: "/",
+    error: "/",
+  },
   callbacks: {
     async session({ session, token }) {
       if (session?.user) {
         session.user.id = token.sub;
-        // Adiciona a role do usuário à sessão
         session.user.role = "admin"; // Temporariamente definindo todos como admin para teste
       }
       return session;
     },
+    async jwt({ token, account, profile }) {
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      return token;
+    }
   }
 };

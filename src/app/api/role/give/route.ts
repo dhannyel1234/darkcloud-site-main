@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import adminController from "@/functions/database/controllers/AdminController";
 
 export async function POST(req: NextRequest) {
     try {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
             );
         };
         
-        const { user_id } = await req.json();
+        const { user_id, user_name } = await req.json();
         if (!user_id) {
             return NextResponse.json(
                 {
@@ -25,34 +26,27 @@ export async function POST(req: NextRequest) {
             );
         };
 
-        const guildId = process.env.DISCORD_GUILD_ID as string;
-        const roleId = process.env.DISCORD_ROLE_ID as string;
-        const botToken = process.env.DISCORD_BOT_TOKEN as string;
+        // Verificar se já é admin
+        const existingAdmin = await adminController.find({ user_id });
+        if (existingAdmin) {
+            return NextResponse.json({ message: "Usuário já é administrador" });
+        }
 
-        const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${user_id}/roles/${roleId}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bot ${botToken}`,
-                'Content-Type': 'application/json'
-            }
+        // Criar admin
+        await adminController.create({
+            user_id,
+            user_name: user_name || 'Admin'
         });
 
-        if (response.ok) {
-            return NextResponse.json(
-                { success: "Role successfully assigned to user on Discord", support: '@dump.ts' },
-                { status: 200 }
-            );
-        } else {
-            const errorData = await response.json();
-            return NextResponse.json(
-                { message: "Error assigning role to user on Discord", error: errorData, support: '@dump.ts' },
-                { status: response.status }
-            );
-        }
-    } catch (err) {
+        return NextResponse.json({
+            success: true,
+            message: "Permissão de admin adicionada com sucesso"
+        });
+    } catch (error) {
+        console.error("Erro ao definir admin:", error);
         return NextResponse.json(
-            { message: "Error assigning role to user on Discord", error: err, support: '@dump.ts' },
+            { error: "Erro ao definir admin" },
             { status: 500 }
         );
-    };
+    }
 };
