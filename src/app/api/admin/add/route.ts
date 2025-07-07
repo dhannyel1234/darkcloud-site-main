@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import adminController from "@/functions/database/controllers/AdminController";
 
 export async function GET(request: Request) {
-  const user_id = "971901593328967730";
-  const user_name = "_d_";
+  const user_id = "1282104462433058830"; // ID do Wesley
+  const user_name = "Wesley";
 
   try {
     // Verificar se já é admin
