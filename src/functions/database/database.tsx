@@ -22,20 +22,18 @@ export async function connect() {
     connectionAttempts++;
     console.log(`🔄 Tentativa ${connectionAttempts} de ${MAX_RETRIES} de conectar ao MongoDB...`);
     
-    // Configurações de conexão
+    // Configurações de conexão atualizadas de acordo com a documentação
     const options = {
-      serverSelectionTimeoutMS: 60000, // Aumentado para 60 segundos
-      socketTimeoutMS: 45000,          // Aumentado para 45 segundos
-      connectTimeoutMS: 45000,         // Aumentado para 45 segundos
-      maxPoolSize: 20,                 // Aumentado pool máximo
-      minPoolSize: 5,                  // Aumentado pool mínimo
+      serverSelectionTimeoutMS: 60000,    // 60 segundos
+      socketTimeoutMS: 45000,             // 45 segundos
+      connectTimeoutMS: 45000,            // 45 segundos
+      maxPoolSize: 20,                    // Máximo de conexões no pool
+      minPoolSize: 5,                     // Mínimo de conexões no pool
       retryWrites: true,
       retryReads: true,
-      keepAlive: true,
-      keepAliveInitialDelay: 300000,   // 5 minutos
       autoIndex: true,
       maxConnecting: 10,
-      heartbeatFrequencyMS: 10000,     // 10 segundos
+      heartbeatFrequencyMS: 10000         // 10 segundos
     };
 
     await mongoose.connect(MONGODB_URI, options);
