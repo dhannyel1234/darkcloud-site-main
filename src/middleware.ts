@@ -10,25 +10,36 @@ export async function middleware(request: NextRequest) {
             const token = await getToken({ req: request });
             
             if (!token || !token.sub) {
+                console.log('🔒 Middleware: Token não encontrado');
                 return NextResponse.redirect(new URL('/404', request.url));
             }
 
+            console.log('🔑 Middleware: Token encontrado para usuário:', token.sub);
+
+            // Constrói a URL base
+            const baseUrl = request.nextUrl.origin;
+            console.log('🌐 Middleware: URL base:', baseUrl);
+
             // Faz a chamada para verificar se o usuário é admin
-            const adminCheckResponse = await fetch(
-                `${process.env.NEXTAUTH_URL || request.nextUrl.origin}/api/admin/get?user_id=${token.sub}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Cookie': request.headers.get('cookie') || '',
-                        'Host': request.headers.get('host') || ''
-                    }
+            const adminCheckUrl = `${baseUrl}/api/admin/get?user_id=${token.sub}`;
+            console.log('🔍 Middleware: Verificando admin em:', adminCheckUrl);
+
+            const adminCheckResponse = await fetch(adminCheckUrl, {
+                method: 'GET',
+                headers: {
+                    'Cookie': request.headers.get('cookie') || '',
+                    'Host': request.headers.get('host') || ''
                 }
-            );
+            });
 
             // Se a resposta não for bem-sucedida, redireciona para a página 404
             if (!adminCheckResponse.ok) {
+                console.log('❌ Middleware: Usuário não é admin');
                 return NextResponse.redirect(new URL('/404', request.url));
             }
+
+            const adminData = await adminCheckResponse.json();
+            console.log('✅ Middleware: Dados do admin:', adminData);
 
             // Se chegou até aqui, o usuário é admin - envia webhook para Discord
             await sendAdminAccessWebhook(request, token);
@@ -37,6 +48,7 @@ export async function middleware(request: NextRequest) {
             return NextResponse.next();
         } catch (error) {
             // Em caso de erro, redireciona para a página 404 por segurança
+            console.error('❌ Middleware: Erro ao verificar admin:', error);
             return NextResponse.redirect(new URL('/404', request.url));
         }
     }
