@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { MongoClient } from 'mongodb';
 
 // A string de conexão virá do .env
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://Dhannyel:oAuilUABWvUNpDkp@darkcloud.4hy8j1l.mongodb.net/lanhouse?retryWrites=true&w=majority&appName=DarkCloud";
@@ -12,8 +13,11 @@ let isConnected = false;
 let connectionAttempts = 0;
 const MAX_RETRIES = 3;
 
+// Cliente MongoDB
+let mongoClient: MongoClient | null = null;
+
 export async function connect() {
-  if (isConnected) {
+  if (isConnected && mongoose.connection.readyState === 1) {
     console.log('✅ Já conectado ao MongoDB');
     return mongoose.connection;
   }
@@ -22,23 +26,36 @@ export async function connect() {
     connectionAttempts++;
     console.log(`🔄 Tentativa ${connectionAttempts} de ${MAX_RETRIES} de conectar ao MongoDB...`);
     
-    // Configurações de conexão atualizadas de acordo com a documentação
-    const options = {
-      serverSelectionTimeoutMS: 60000,    // 60 segundos
-      socketTimeoutMS: 45000,             // 45 segundos
-      connectTimeoutMS: 45000,            // 45 segundos
-      maxPoolSize: 20,                    // Máximo de conexões no pool
-      minPoolSize: 5,                     // Mínimo de conexões no pool
+    // Primeiro, tentar conectar usando o MongoClient nativo
+    if (!mongoClient) {
+      console.log('🔄 Iniciando conexão com MongoClient...');
+      mongoClient = new MongoClient(MONGODB_URI, {
+        serverSelectionTimeoutMS: 60000,
+        connectTimeoutMS: 45000,
+        socketTimeoutMS: 45000,
+      });
+      
+      await mongoClient.connect();
+      console.log('✅ MongoClient conectado com sucesso');
+    }
+    
+    // Agora conectar o Mongoose usando a conexão existente
+    console.log('🔄 Configurando Mongoose...');
+    await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 60000,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 45000,
+      maxPoolSize: 20,
+      minPoolSize: 5,
       retryWrites: true,
       retryReads: true,
       autoIndex: true,
       maxConnecting: 10,
-      heartbeatFrequencyMS: 10000         // 10 segundos
-    };
+      heartbeatFrequencyMS: 10000
+    });
 
-    await mongoose.connect(MONGODB_URI, options);
     isConnected = true;
-    console.log('✅ Conectado ao MongoDB com sucesso');
+    console.log('✅ Mongoose conectado com sucesso');
     
     // Configurar listeners de eventos
     mongoose.connection.on('error', (err) => {
