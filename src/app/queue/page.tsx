@@ -407,7 +407,7 @@ export default function QueuePage() {
             });
         }
         const connectLink = machineInfo?.connectLink || '';
-        const tutorialLink = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Troque pelo link real
+        const tutorialLink = 'https://www.youtube.com/watch?v=jJnGhF4B4VU'; // Troque pelo link real
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative">
                 <div className="flex flex-col items-center justify-center z-10">
@@ -546,7 +546,7 @@ export default function QueuePage() {
                 <AlertCircle className="w-12 h-12 text-yellow-500" />
                 <h2 className="text-2xl font-bold">Plano não encontrado</h2>
                 <p className="text-gray-500">Você não possui nenhum plano ativo no momento. Adquira um plano para poder entrar na fila.</p>
-                <Button onClick={() => router.push('/order')}>Ver Planos Disponíveis</Button>
+                <Button onClick={() => router.push('/')}>Ver Planos Disponíveis</Button>
             </div>
         );
     }
