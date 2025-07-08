@@ -37,6 +37,10 @@ export async function POST(request: NextRequest) {
         // Pausar tempo do plano Alfa, se for o caso
         await UserPlanController.pauseAlfaTime(session.user.id);
 
+        // Atualizar posições dos usuários restantes na fila
+        const queueController = new QueueController();
+        await queueController.updateQueuePositions();
+
         return NextResponse.json({ 
             success: true, 
             message: 'Saiu da fila com sucesso' 
