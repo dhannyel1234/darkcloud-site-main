@@ -24,8 +24,8 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
   const gamingPlans: Plan[] = [
     {
       name: "Alfa",
-      price: "R$0,01",
-      period: "/1:30h",
+      price: "R$4,97",
+      period: "/1h",
       description: "Uma máquina para testar e desfrutar dos melhores jogos da atualidade.",
       specs: [
         "JOGOS PRÉ-INSTALADOS",
@@ -41,8 +41,8 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     },
     {
       name: "Omega",
-      price: "R$0,01",
-      period: "/4 horas",
+      price: "R$69,97",
+      period: "/1 mês",
       description: "Uma máquina para jogar moderadamente durante uma semana inteira.",
       specs: [
         "JOGOS PRÉ-INSTALADOS",
@@ -58,8 +58,8 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     },
     {
       name: "Beta",
-      price: "R$0,01",
-      period: "/8 horas",
+      price: "R$49,97",
+      period: "/1 semana",
       description: "Uma máquina que cabe no seu bolso para jogar moderadamente o mês inteiro.",
       specs: [
         "JOGOS PRÉ-INSTALADOS",

@@ -9,6 +9,7 @@ const nextConfig = {
       { hostname: 'assets.nintendo.com' },
       { hostname: 'cdn.discordapp.com' },
       { hostname: 'i.ytimg.com' },
+      { hostname: 'images-ext-1.discordapp.net' },
     ],
   },
   reactStrictMode: true,

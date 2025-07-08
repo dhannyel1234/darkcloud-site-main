@@ -93,6 +93,8 @@ export default function Feedbacks() {
                       src={feedback.avatarUrl} 
                       alt={feedback.name} 
                       className="w-full h-full object-cover"
+                      width={56}
+                      height={56}
                     />
                   </div>
                 </div>

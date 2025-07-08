@@ -137,31 +137,35 @@ export default function Dashboard() {
                 const checkSession = async () => {
                     const cachedSession = localStorage.getItem('session');
                     if (cachedSession) {
-                        setSession(JSON.parse(cachedSession));
+                        const parsedSession = JSON.parse(cachedSession);
+                        setSession(parsedSession);
                         setLoading(false);
-                        return;
+                        return parsedSession;
                     } else {
-                        const session = await getSession();
-                        if (session) {
-                            setSession(session);
+                        const newSession = await getSession();
+                        if (newSession) {
+                            setSession(newSession);
                             setLoading(false);
-                            localStorage.setItem('session', JSON.stringify(session));
+                            localStorage.setItem('session', JSON.stringify(newSession));
+                            return newSession;
                         } else {
                             signIn('discord', { redirect: true });
+                            return null;
                         }
-                        return;
                     }
                 };
-                const checkAdmin = async () => {
-                    const cachedSession = localStorage.getItem('session');
-                    const jsonSession = cachedSession ? JSON.parse(cachedSession) : session;
 
-                    const response = await fetch(`/api/admin/get?user_id=${jsonSession?.user.id}`);
+                const currentSession = await checkSession();
+                if (!currentSession) return;
+
+                const checkAdmin = async () => {
+                    const response = await fetch(`/api/admin/get?user_id=${currentSession.user.id}`);
                     const data = await response.json();
                     if (data.message) {
                         return router.push('/');
                     };
                 };
+
                 const checkMachines = async () => {
                     const response = await fetch(`/api/azure/getAll`);
                     const machinesAzure = await response.json();
@@ -210,9 +214,8 @@ export default function Dashboard() {
                     setLoadingMachines(false);
                 };
 
-                checkSession();
-                checkAdmin();
-                checkMachines();
+                await checkAdmin();
+                await checkMachines();
             } catch (err) {
                 return toast({
                     title: `Erro`,
@@ -228,7 +231,7 @@ export default function Dashboard() {
 
         allFetch();
         snapshotsFetch();
-    }, [toast, router, session]);
+    }, []);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);

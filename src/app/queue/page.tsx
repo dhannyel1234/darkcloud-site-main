@@ -26,7 +26,11 @@ import {
     LinkIcon,
     Check,
     LockOpen,
-    Tag
+    Tag,
+    Memory,
+    HardDrive,
+    Cpu,
+    MonitorPlay
 } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
@@ -188,25 +192,15 @@ export default function QueuePage() {
                 timeInSeconds = Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / 1000));
             }
             
-            // Log para debug
-            console.log('DEBUG - Atualizando tempo:', {
-                planType: queueStatus.plan.type,
-                alfaTimeLeftMs: queueStatus.plan.alfaTimeLeftMs,
-                endTime: queueStatus.plan.endTime,
-                timeInSeconds
-            });
-            
             setTimeLeft(timeInSeconds);
-
-            // Se o tempo acabou, verificar o status da fila
-            if (timeInSeconds <= 0) {
-                checkQueueStatus();
-            }
         };
-        
-        update();
-        const interval = setInterval(update, 1000);
-        return () => clearInterval(interval);
+
+        // Garantir que só atualize no cliente
+        if (typeof window !== 'undefined') {
+            update(); // Atualização inicial
+            const interval = setInterval(update, 1000);
+            return () => clearInterval(interval);
+        }
     }, [queueStatus]);
 
     // Dicas rotativas
@@ -352,31 +346,14 @@ export default function QueuePage() {
     // Função para sair da fila
     const sairDaFila = async () => {
         try {
-            await fetch('/api/queue/leave', { method: 'POST' });
-            setQueueStatus(null);
-            setSelectedPlan(null);
-            toast({ title: "Você saiu da fila." });
+            const response = await fetch('/api/queue/leave', {
+                method: 'POST'
+            });
+            await checkQueueStatus();
         } catch (error) {
-            toast({ title: "Erro ao sair da fila", variant: "destructive" });
+            console.error('Erro ao sair da fila:', error);
         }
     };
-
-    // Fundo igual ao da home
-    const Background = () => (
-        <>
-            <div className="fixed inset-0 z-0">
-                <div className="absolute inset-0 bg-gradient-to-b from-[#020508] via-[#030a16] to-[#040d1f]"></div>
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute h-full w-full"
-                        style={{ background: `radial-gradient(circle at 50% 50%, rgba(30, 64, 124, 0.12), transparent 50%)`, transform: `scale(1.5)`, transformOrigin: 'center' }}></div>
-                </div>
-                <div className="absolute inset-0 opacity-5">
-                    <div className="absolute h-full w-full"
-                        style={{ background: `conic-gradient(from 225deg at 50% 50%, #0a0f1700, #0c1d3a08, #0a0f1700)`, filter: 'blur(80px)', animation: 'spin 90s linear infinite' }}></div>
-                </div>
-            </div>
-        </>
-    );
 
     if (isLoading || isCheckingPlans) {
         return (
@@ -392,7 +369,6 @@ export default function QueuePage() {
     if (queueStatus && queueStatus.status === 'waiting') {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative">
-                <Background />
                 <div className="flex flex-col items-center justify-center z-10">
                     <div className="flex flex-col items-center justify-center">
                         <Image src="/darkcloud.png" alt="Logo" width={96} height={96} className="animate-pulse" />
@@ -434,79 +410,75 @@ export default function QueuePage() {
         const tutorialLink = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Troque pelo link real
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative">
-                <Background />
                 <div className="flex flex-col items-center justify-center z-10">
-                    <div className="rounded-2xl border border-blue-400 bg-gradient-to-br from-[#10182a] via-[#151823] to-[#0a0f1a] max-w-sm w-full p-8 flex flex-col items-center shadow-2xl transition-all duration-300 hover:shadow-blue-500/30">
-                        <div className="flex flex-col items-center justify-center">
-                            <Image src="/darkcloud.png" alt="Logo" width={64} height={64} className="mb-3 drop-shadow-lg" />
+                    <div className="rounded-2xl border border-blue-400 bg-gradient-to-br from-[#10182a] via-[#151823] to-[#0a0f1a] max-w-sm w-full p-5 flex flex-col items-center shadow-2xl transition-all duration-300 hover:shadow-blue-500/30">
+                        <div className="flex flex-col items-center justify-center mb-2">
+                            <Image src="/darkcloud.png" alt="Logo" width={64} height={64} className="mb-2 drop-shadow-lg" />
                             <h1 className="text-2xl font-bold text-gray-200">Fila de espera</h1>
                         </div>
-                        <div className="flex items-center gap-2 text-blue-300 text-3xl font-extrabold mb-1 uppercase tracking-widest drop-shadow">
-                            {/* Ícone plano */}
-                            <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path fill="#60a5fa" d="M12 2l2.09 6.26L20 9.27l-5 3.64L16.18 21 12 17.27 7.82 21 9 12.91l-5-3.64 5.91-.01z"/></svg>
+                        <div className="flex items-center gap-2 text-blue-300 text-2xl font-extrabold mb-1 uppercase tracking-widest drop-shadow">
+                            <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="#60a5fa" d="M12 2l2.09 6.26L20 9.27l-5 3.64L16.18 21 12 17.27 7.82 21 9 12.91l-5-3.64 5.91-.01z"/></svg>
                             {queueStatus.plan.name}
                         </div>
-                        <div className="w-full flex flex-col items-center mt-2 mb-2">
-                            <span className="flex items-center gap-2 text-blue-200 text-base font-semibold">
-                                {/* Ícone IP */}
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path fill="#38bdf8" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5" fill="#60a5fa"/></svg>
+                        <div className="w-full flex flex-col items-center mt-1 mb-1">
+                            <span className="flex items-center gap-2 text-blue-200 text-sm font-semibold">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path fill="#38bdf8" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5" fill="#60a5fa"/></svg>
                                 IP DA MÁQUINA
                             </span>
-                            <span className="text-white text-2xl font-mono select-all font-bold tracking-wider mt-1 mb-2">{machineInfo.ip}</span>
+                            <span className="text-white text-lg font-mono select-all font-bold tracking-wider mt-0.5 mb-1">{machineInfo.ip}</span>
                         </div>
-                        <div className="w-full border-t border-white/10 my-2"></div>
-                        <div className="w-full flex flex-col items-center mb-2">
-                            <span className="flex items-center gap-2 text-blue-200 text-base font-semibold">
-                                {/* Ícone calendário */}
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4" fill="#38bdf8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#60a5fa"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#60a5fa"/></svg>
+                        <div className="w-full border-t border-white/10 my-1"></div>
+                        <div className="w-full flex flex-col items-center mb-1">
+                            <span className="flex items-center gap-2 text-blue-200 text-sm font-semibold">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="4" fill="#38bdf8"/><rect x="7" y="2" width="2" height="4" rx="1" fill="#60a5fa"/><rect x="15" y="2" width="2" height="4" rx="1" fill="#60a5fa"/></svg>
                                 DATA DE EXPIRAÇÃO
                             </span>
-                            <span className="text-white text-xl font-bold mt-1 mb-2">
+                            <span className="text-white text-base font-bold mt-0.5 mb-1">
                                 {queueStatus.plan.endTime ? formatExpirationDate(queueStatus.plan.endTime) : '---'}
                             </span>
                         </div>
-                        <div className="w-full border-t border-white/10 my-2"></div>
-                        <div className="w-full flex flex-col items-center mb-2">
-                            <span className="flex items-center gap-2 text-blue-200 text-base font-semibold">
-                                {/* Ícone chip/configuração */}
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="#38bdf8"/><rect x="8" y="8" width="8" height="8" rx="2" fill="#60a5fa"/></svg>
+                        <div className="w-full border-t border-white/10 my-1"></div>
+                        <div className="w-full flex flex-col items-center mb-1">
+                            <span className="flex items-center gap-2 text-blue-200 text-sm font-semibold">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="#38bdf8"/><rect x="8" y="8" width="8" height="8" rx="2" fill="#60a5fa"/></svg>
                                 CONFIGURAÇÕES
                             </span>
-                            <div className="text-white text-sm font-bold text-center mt-1 mb-2 space-y-1">
-                                {config.map((c, i) => <div key={i}>{c}</div>)}
+                            <div className="text-blue-200 text-sm font-semibold text-center mb-2 space-y-1 w-full">
+                                <div className="flex items-center gap-2 justify-center"><span>AMD EPYC 2.5Ghz</span></div>
+                                <div className="flex items-center gap-2 justify-center"><span>16RAM</span></div>
+                                <div className="flex items-center gap-2 justify-center"><span>NVIDIA TESLA T4</span></div>
+                                <div className="flex items-center gap-2 justify-center"><span>256GB SSD</span></div>
                             </div>
                         </div>
-                        <div className="w-full border-t border-white/10 my-2"></div>
-                        <div className="w-full flex flex-col items-center mb-2">
-                            <span className="flex items-center gap-2 text-blue-200 text-base font-semibold">
-                                {/* Ícone timer */}
-                                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#38bdf8"/><rect x="11" y="6" width="2" height="7" rx="1" fill="#60a5fa"/><rect x="11" y="12" width="5" height="2" rx="1" fill="#60a5fa"/></svg>
+                        <div className="w-full border-t border-white/10 my-1"></div>
+                        <div className="w-full flex flex-col items-center mb-1">
+                            <span className="flex items-center gap-2 text-blue-200 text-sm font-semibold">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#38bdf8"/><rect x="11" y="6" width="2" height="7" rx="1" fill="#60a5fa"/><rect x="11" y="12" width="5" height="2" rx="1" fill="#60a5fa"/></svg>
                                 TEMPO RESTANTE
                             </span>
-                            <span className="text-white text-2xl font-mono font-bold mt-1 mb-2 tracking-widest">{formatTime(timeLeft, queueStatus.plan.type)}</span>
+                            <span suppressHydrationWarning className="text-white text-lg font-mono font-bold mt-0.5 mb-1 tracking-widest">{formatTime(timeLeft, queueStatus.plan.type)}</span>
                         </div>
-                        <div className="w-full flex gap-4 justify-center mt-4">
+                        <div className="w-full flex gap-4 justify-center mt-2">
                             <a
                                 href={connectLink || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-bold text-white text-lg transition-all duration-200 shadow-md ${connectLink ? 'bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 cursor-pointer' : 'bg-gray-600 cursor-not-allowed'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md font-bold text-white text-base transition-all duration-200 shadow-md ${connectLink ? 'bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 cursor-pointer' : 'bg-gray-600 cursor-not-allowed'}`}
                                 style={{ textDecoration: 'none' }}
                                 tabIndex={connectLink ? 0 : -1}
                                 aria-disabled={!connectLink}
                             >
-                                {/* Logo Parsec real */}
-                                <Image src="/parsec.svg" alt="Parsec" width={24} height={24} />
-                                <span>Conectar via Parsec</span>
+                                <Image src="/parsec.svg" alt="Parsec" width={18} height={18} />
+                                <span>Conectar</span>
                             </a>
                             <a
                                 href={tutorialLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-bold text-white text-lg bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 transition-all duration-200 shadow-md"
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md font-bold text-white text-base bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 transition-all duration-200 shadow-md"
                                 style={{ textDecoration: 'none' }}
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M10 15.172V8.828a1 1 0 0 1 1.707-.707l4.243 3.172a1 1 0 0 1 0 1.414l-4.243 3.172A1 1 0 0 1 10 15.172Z"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M10 15.172V8.828a1 1 0 0 1 1.707-.707l4.243 3.172a1 1 0 0 1 0 1.414l-4.243 3.172A1 1 0 0 1 10 15.172Z"/></svg>
                                 TUTORIAL
                             </a>
                         </div>
@@ -519,34 +491,50 @@ export default function QueuePage() {
     if (!queueStatus && !planoExpirado && !isLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center relative">
-                <Background />
                 <div className="flex flex-col items-center justify-center z-10">
-                    <h1 className="text-3xl font-bold text-white mb-6">Você possui um plano ativo!</h1>
-                    <Button
-                        onClick={async () => {
-                            // Buscar planos ativos do usuário
-                            const plansRes = await fetch('/api/user/plans');
-                            const plansData = await plansRes.json();
-                            if (plansData.success && plansData.plans.length > 0) {
-                                // Pega o primeiro plano ativo
-                                const planType = plansData.plans[0].type.toLowerCase();
-                                if (['alfa', 'beta', 'omega'].includes(planType)) {
-                                    await joinQueue(planType as 'alfa' | 'beta' | 'omega');
+                    <div className="rounded-2xl border-2 border-blue-400 bg-gradient-to-br from-[#10182a] via-[#151823] to-[#0a0f1a] max-w-md w-full p-10 flex flex-col items-center shadow-2xl transition-all duration-300 hover:shadow-[0_0_40px_10px_rgba(56,189,248,0.3)] group">
+                        <Image src="/darkcloud.png" alt="Logo" width={80} height={80} className="mb-4 drop-shadow-lg" />
+                        <span className="text-blue-300 text-lg font-bold mb-2 tracking-widest">STATUS</span>
+                        <h1 className="text-3xl font-extrabold text-blue-400 mb-4 uppercase">PLANO ATIVO</h1>
+                        <span className="text-white text-lg font-bold mb-2">CONFIGURAÇÕES</span>
+                        <div className="text-blue-200 text-base font-semibold text-center mb-6 space-y-2 w-full">
+                            <div className="flex items-center gap-2 justify-center">
+                                <span>AMD EPYC 2.5Ghz</span>
+                            </div>
+                            <div className="flex items-center gap-2 justify-center">
+                                <span>16RAM</span>
+                            </div>
+                            <div className="flex items-center gap-2 justify-center">
+                                <span>NVIDIA TESLA T4</span>
+                            </div>
+                            <div className="flex items-center gap-2 justify-center">
+                                <span>256GB SSD</span>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={async () => {
+                                const plansRes = await fetch('/api/user/plans');
+                                const plansData = await plansRes.json();
+                                if (plansData.success && plansData.plans.length > 0) {
+                                    const planType = plansData.plans[0].type.toLowerCase();
+                                    if (["alfa", "beta", "omega"].includes(planType)) {
+                                        await joinQueue(planType as 'alfa' | 'beta' | 'omega');
+                                    } else {
+                                        toast({
+                                            title: "Erro",
+                                            description: "Tipo de plano inválido",
+                                            variant: "destructive",
+                                        });
+                                    }
                                 } else {
-                                    toast({
-                                        title: "Erro",
-                                        description: "Tipo de plano inválido",
-                                        variant: "destructive",
-                                    });
+                                    setPlanoExpirado(true);
                                 }
-                            } else {
-                                setPlanoExpirado(true);
-                            }
-                        }}
-                        className="mt-4 px-8 py-3 rounded-full bg-[#7dd3fc] text-[#0a192f] font-bold text-lg shadow-lg hover:bg-[#60aaff] transition"
-                    >
-                        Entrar na fila
-                    </Button>
+                            }}
+                            className="mt-4 px-8 py-3 rounded-full bg-blue-400 text-[#0a192f] font-bold text-lg shadow-lg hover:bg-blue-500 transition w-full"
+                        >
+                            INICIAR INSTÂNCIA
+                        </Button>
+                    </div>
                 </div>
             </div>
         );
@@ -564,22 +552,293 @@ export default function QueuePage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center relative">
-            <Background />
-            <div className="flex flex-col items-center justify-center z-10">
-                {planoExpirado ? (
-                    <>
-                        <AlertCircle className="w-16 h-16 text-yellow-500 mb-4" />
-                        <h2 className="text-2xl font-bold text-white text-center mb-2">Plano não encontrado</h2>
-                        <p className="text-gray-400 text-center mb-6">
-                            Você não possui nenhum plano ativo no momento.
-                            Adquira um plano para poder entrar na fila.
-                        </p>
-                        <Button onClick={() => router.push('/')} className="bg-[#7dd3fc] text-[#0a192f] hover:bg-[#60aaff]">
+        <div className="min-h-screen bg-[#0a0a0a] text-white p-4 md:p-8">
+            {/* Background com efeito de gradiente */}
+            <div className="fixed inset-0 bg-gradient-to-b from-blue-900/10 via-blue-900/5 to-transparent pointer-events-none" />
+            <div className="fixed inset-0 bg-[url('/bg/Desktop.png')] opacity-10 pointer-events-none bg-cover bg-center" />
+            
+            <div className="max-w-4xl mx-auto relative">
+                {/* Breadcrumb com animação */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Breadcrumb className="mb-8">
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href="/">Início</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>Fila</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                </motion.div>
+
+                {isLoading || isCheckingPlans ? (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center justify-center min-h-[400px]"
+                    >
+                        <RefreshCw className="w-8 h-8 animate-spin text-blue-400" />
+                        <p className="mt-4 text-gray-400">Verificando status{'.'.repeat(dots)}</p>
+                    </motion.div>
+                ) : planoExpirado ? (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex flex-col items-center justify-center min-h-[400px] text-center"
+                    >
+                        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+                        <h2 className="text-2xl font-bold mb-2">Plano Expirado</h2>
+                        <p className="text-gray-400 mb-6">Você não possui um plano ativo no momento.</p>
+                        <Button 
+                            onClick={() => router.push('/plans')} 
+                            variant="default"
+                            className="bg-blue-500 hover:bg-blue-600 transition-colors"
+                        >
                             Ver Planos Disponíveis
                         </Button>
-                    </>
-                ) : null}
+                    </motion.div>
+                ) : queueStatus ? (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="space-y-6"
+                    >
+                        {/* Card Principal com Status */}
+                        <div className="relative bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-2xl p-6 backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 shadow-lg hover:shadow-blue-500/20">
+                            <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.2 }}
+                                className="absolute -top-3 -right-3"
+                            >
+                                <Badge variant="default" className="bg-blue-500 shadow-lg">
+                                    {queueStatus.status === 'active' ? 'ATIVO' : 'NA FILA'}
+                                </Badge>
+                            </motion.div>
+                            
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center space-x-4">
+                                    <motion.div 
+                                        whileHover={{ scale: 1.05 }}
+                                        className="p-3 bg-blue-500/20 rounded-xl"
+                                    >
+                                        <Image
+                                            src="/darkcloud.png"
+                                            alt="DarkCloud"
+                                            width={40}
+                                            height={40}
+                                            className="rounded-lg"
+                                        />
+                                    </motion.div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
+                                            DARKCLOUD
+                                        </h2>
+                                        <p className="text-blue-400">Cloud Gaming</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Configurações da Máquina */}
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold mb-4 text-blue-300">CONFIGURAÇÕES</h3>
+                                    <div className="space-y-3">
+                                        <motion.div 
+                                            whileHover={{ x: 5 }}
+                                            className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                        >
+                                            <Server className="w-5 h-5 text-blue-400" />
+                                            <span>AMD EPYC 2.5Ghz</span>
+                                        </motion.div>
+                                        <motion.div 
+                                            whileHover={{ x: 5 }}
+                                            className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                        >
+                                            <Memory className="w-5 h-5 text-blue-400" />
+                                            <span>16RAM</span>
+                                        </motion.div>
+                                        <motion.div 
+                                            whileHover={{ x: 5 }}
+                                            className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                        >
+                                            <MonitorPlay className="w-5 h-5 text-blue-400" />
+                                            <span>NVIDIA TESLA T4</span>
+                                        </motion.div>
+                                        <motion.div 
+                                            whileHover={{ x: 5 }}
+                                            className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                        >
+                                            <HardDrive className="w-5 h-5 text-blue-400" />
+                                            <span>256GB SSD</span>
+                                        </motion.div>
+                                    </div>
+                                </div>
+
+                                {/* Status e Ações */}
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold mb-4 text-blue-300">STATUS</h3>
+                                    {queueStatus.status === 'active' ? (
+                                        <>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-300">Tempo Restante</span>
+                                                    <span className="text-blue-400 font-medium">
+                                                        {formatTime(timeLeft, queueStatus.plan.type)}
+                                                    </span>
+                                                </div>
+                                                <Progress 
+                                                    value={Math.min(100, (timeLeft / (queueStatus.plan.duration * 60)) * 100)} 
+                                                    className="h-2 bg-blue-950"
+                                                />
+                                            </div>
+                                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                                <Button 
+                                                    className="w-full mt-4 bg-blue-500 hover:bg-blue-600 transition-colors shadow-lg hover:shadow-blue-500/50"
+                                                    onClick={() => window.open(queueStatus.machineInfo?.connectLink, '_blank')}
+                                                >
+                                                    <Play className="w-4 h-4 mr-2" />
+                                                    INICIAR INSTÂNCIA
+                                                </Button>
+                                            </motion.div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-300">Posição na Fila</span>
+                                                    <span className="text-blue-400 font-medium">
+                                                        #{queueStatus.position}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-300">Plano</span>
+                                                    <span className="text-blue-400 font-medium">
+                                                        {queueStatus.plan.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                                <Button 
+                                                    variant="destructive" 
+                                                    className="w-full mt-4 shadow-lg hover:shadow-red-500/50"
+                                                    onClick={sairDaFila}
+                                                >
+                                                    Sair da Fila
+                                                </Button>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Dicas e Informações */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 rounded-xl p-6 backdrop-blur-sm border border-gray-500/20 hover:border-gray-500/40 transition-all duration-300 shadow-lg hover:shadow-gray-500/20"
+                        >
+                            <h3 className="text-lg font-semibold mb-4 flex items-center text-yellow-400">
+                                <AlertCircle className="w-5 h-5 mr-2" />
+                                Dicas Importantes
+                            </h3>
+                            <p className="text-gray-300">{dicas[dicaIndex]}</p>
+                        </motion.div>
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex items-center justify-center min-h-[400px]"
+                    >
+                        <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-2xl p-8 backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300 shadow-lg hover:shadow-blue-500/20 max-w-sm w-full">
+                            {/* Logo e Status */}
+                            <div className="flex flex-col items-center text-center mb-8">
+                                <motion.div 
+                                    whileHover={{ scale: 1.05 }}
+                                    className="p-4 bg-blue-500/20 rounded-2xl mb-6"
+                                >
+                                    <Image
+                                        src="/darkcloud.png"
+                                        alt="DarkCloud"
+                                        width={60}
+                                        height={60}
+                                        className="rounded-xl"
+                                    />
+                                </motion.div>
+                                <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent mb-2">
+                                    STATUS
+                                </h2>
+                                <h3 className="text-xl font-bold text-blue-400 mb-4">
+                                    PLANO ATIVO
+                                </h3>
+                            </div>
+
+                            {/* Configurações */}
+                            <div className="space-y-4 mb-8">
+                                <h3 className="text-lg font-semibold text-blue-300 text-center mb-4">CONFIGURAÇÕES</h3>
+                                <div className="space-y-3">
+                                    <motion.div 
+                                        whileHover={{ x: 5 }}
+                                        className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                    >
+                                        <Server className="w-5 h-5 text-blue-400" />
+                                        <span>AMD EPYC 2.5Ghz</span>
+                                    </motion.div>
+                                    <motion.div 
+                                        whileHover={{ x: 5 }}
+                                        className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                    >
+                                        <Memory className="w-5 h-5 text-blue-400" />
+                                        <span>16RAM</span>
+                                    </motion.div>
+                                    <motion.div 
+                                        whileHover={{ x: 5 }}
+                                        className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                    >
+                                        <MonitorPlay className="w-5 h-5 text-blue-400" />
+                                        <span>NVIDIA TESLA T4</span>
+                                    </motion.div>
+                                    <motion.div 
+                                        whileHover={{ x: 5 }}
+                                        className="flex items-center space-x-3 text-gray-300 transition-colors hover:text-blue-400"
+                                    >
+                                        <HardDrive className="w-5 h-5 text-blue-400" />
+                                        <span>256GB SSD</span>
+                                    </motion.div>
+                                </div>
+                            </div>
+
+                            {/* Botão de Ação */}
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button 
+                                    onClick={() => joinQueue('alfa')}
+                                    disabled={isJoiningQueue}
+                                    className="w-full bg-blue-500 hover:bg-blue-600 transition-colors shadow-lg hover:shadow-blue-500/50 font-semibold text-lg py-6"
+                                >
+                                    {isJoiningQueue ? (
+                                        <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+                                    ) : (
+                                        <Play className="w-5 h-5 mr-2" />
+                                    )}
+                                    INICIAR INSTÂNCIA
+                                </Button>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
             </div>
         </div>
     );

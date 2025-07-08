@@ -400,30 +400,64 @@ export default function LoggedComponent({ user }: { user: User }) {
                                                     </DropdownMenuPortal>
                                                 </DropdownMenuSub>
 
-                                                {/* Gerenciar Administradores [Menu] */}
+                                                {/* Gerenciar Planos [Menu] */}
                                                 <DropdownMenuSub>
-                                                    <DropdownMenuSubTrigger className="mb-0.5 cursor-pointer">
-                                                        <KeyRound />
-                                                        Gerenciar Administradores
+                                                    <DropdownMenuSubTrigger className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:to-orange-500/10 focus:bg-white/5 transition-all group">
+                                                        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
+                                                            <Shield className="w-4 h-4 text-red-400" />
+                                                        </div>
+                                                        <span className="text-white/80 group-hover:text-white transition-colors">Administração</span>
                                                     </DropdownMenuSubTrigger>
                                                     <DropdownMenuPortal>
-                                                        <DropdownMenuSubContent className="p-1 space-y-1 bg-[rgba(7,8,12,255)]">
-                                                            <DropdownMenuLabel className="font-light">Administração</DropdownMenuLabel>
-                                                            <DropdownMenuSeparator />
-
-                                                            {/* Adicionar [Administração] */}
-                                                            <DropdownMenuItem className="mb-0.5 cursor-pointer"
-                                                                onClick={() => { handleMenuButton("add_adm") }}>
-                                                                <UserPlus />
-                                                                Adicionar
+                                                        <DropdownMenuSubContent className="w-72 p-2 bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg">
+                                                            <DropdownMenuItem
+                                                                onClick={() => router.push('/plans-management')}
+                                                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-indigo-500/10 focus:bg-white/5 transition-all group"
+                                                            >
+                                                                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                                                                    <Receipt className="w-4 h-4 text-purple-400" />
+                                                                </div>
+                                                                <span className="text-white/80 group-hover:text-white transition-colors">Gerenciar Planos</span>
                                                             </DropdownMenuItem>
 
-                                                            {/* Ver Administradores [Administração] */}
-                                                            <DropdownMenuItem className="mb-0.5 cursor-pointer"
-                                                                onClick={() => { handleMenuButton("view_adms") }}>
-                                                                <Users />
-                                                                Ver Administradores
+                                                            <DropdownMenuItem
+                                                                onClick={() => setDialog_EditStock(true)}
+                                                                className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-indigo-500/10 focus:bg-white/5 transition-all group"
+                                                            >
+                                                                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                                                                    <Box className="w-4 h-4 text-purple-400" />
+                                                                </div>
+                                                                <span className="text-white/80 group-hover:text-white transition-colors">Gerenciar Estoque</span>
                                                             </DropdownMenuItem>
+
+                                                            {/* Gerenciar Administradores [Menu] */}
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger className="mb-0.5 cursor-pointer">
+                                                                    <KeyRound />
+                                                                    Gerenciar Administradores
+                                                                </DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent className="p-1 space-y-1 bg-[rgba(7,8,12,255)]">
+                                                                        <DropdownMenuLabel className="font-light">Administração</DropdownMenuLabel>
+                                                                        <DropdownMenuSeparator />
+
+                                                                        {/* Adicionar [Administração] */}
+                                                                        <DropdownMenuItem className="mb-0.5 cursor-pointer"
+                                                                            onClick={() => { handleMenuButton("add_adm") }}>
+                                                                            <UserPlus />
+                                                                            Adicionar
+                                                                        </DropdownMenuItem>
+
+                                                                        {/* Ver Administradores [Administração] */}
+                                                                        <DropdownMenuItem className="mb-0.5 cursor-pointer"
+                                                                            onClick={() => { handleMenuButton("view_adms") }}>
+                                                                            <Users />
+                                                                            Ver Administradores
+                                                                        </DropdownMenuItem>
+
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
 
                                                         </DropdownMenuSubContent>
                                                     </DropdownMenuPortal>
