@@ -53,8 +53,12 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        // Obter a próxima posição na fila
-        const lastInQueue = await Queue.findOne({ status: { $in: ['waiting', 'active'] } }, {}, { sort: { position: -1 } });
+        // Obter a próxima posição na fila considerando usuários ativos e em espera
+        const lastInQueue = await Queue.findOne(
+            { status: { $in: ['waiting', 'active'] } },
+            {},
+            { sort: { position: -1 } }
+        );
         const position = lastInQueue ? lastInQueue.position + 1 : 1;
 
         // Calcular duração e tempo restante
