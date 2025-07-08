@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
             console.log('🔑 Middleware: Token encontrado para usuário:', token.sub);
 
             // Constrói a URL base
-            const baseUrl = request.nextUrl.origin;
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || request.nextUrl.origin;
             console.log('🌐 Middleware: URL base:', baseUrl);
 
             // Faz a chamada para verificar se o usuário é admin
