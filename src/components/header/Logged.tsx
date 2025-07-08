@@ -92,7 +92,7 @@ export default function LoggedComponent({ user }: { user: User }) {
     const [isListAdmins, setListAdmins] = useState<Array<{ user_id: string, user_name: string }>>([]);
 
     const [isAdminName, setAdminName] = useState("");
-    const [isAdminId, setAdminId] = useState(0);
+    const [isAdminId, setAdminId] = useState("");
 
     const [isLoading_ViewAdmins, setLoading_ViewAdmins] = useState(true);
     const [isLoading_AddAdmin, setLoading_AddAdmin] = useState(false);
@@ -530,8 +530,8 @@ export default function LoggedComponent({ user }: { user: User }) {
                                         <DiscordLogoIcon className="h-5 w-5 mr-2" />
                                         <span className="text-right whitespace-nowrap">ID do Usuário</span>
                                     </div>
-                                    <Input id="id" placeholder="Insira o ID do Discord do usuário" type="number"
-                                        onChange={(e) => { setAdminId(Number(e.target.value)) }}
+                                    <Input id="id" placeholder="Insira o ID do Discord do usuário" type="text"
+                                        onChange={(e) => { setAdminId(e.target.value) }}
                                     />
                                 </div>
                             </div>
@@ -541,7 +541,7 @@ export default function LoggedComponent({ user }: { user: User }) {
                                 }}>Cancelar</Button>
                                 <Button variant="default" disabled={isLoading_AddAdmin}
                                     onClick={async () => {
-                                        if (isAdminName == "" || isAdminId == 0) {
+                                        if (isAdminName == "" || isAdminId == "") {
                                             return toast({
                                                 title: "Administração",
                                                 description: `Adicione um nome ou ID para o administrador.`
@@ -551,36 +551,50 @@ export default function LoggedComponent({ user }: { user: User }) {
                                         setLoading_AddAdmin(true);
 
                                         const createAdmin = async () => {
-                                            const response = await fetch('/api/admin/create', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                },
-                                                body: JSON.stringify({ user_id: isAdminId, user_name: isAdminName }),
-                                            });
-
-                                            const data = await response.json();
-                                            if (!data.message) {
-                                                toast({
-                                                    title: "Administração",
-                                                    description: `Administrador ${isAdminName} adicionado com sucesso.`
+                                            console.log('Tentando adicionar admin:', { isAdminId, isAdminName });
+                                            
+                                            try {
+                                                const response = await fetch('/api/admin/create', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({ user_id: isAdminId, user_name: isAdminName }),
                                                 });
 
-                                                setAdminName("");
-                                                setAdminId(0);
-                                                setLoading_AddAdmin(false);
-                                                return setDialog_AddAdm(false);
-                                            } else {
+                                                const data = await response.json();
+                                                console.log('Resposta da API:', data);
+
+                                                if (data.success) {
+                                                    toast({
+                                                        title: "Administração",
+                                                        description: `Administrador ${isAdminName} adicionado com sucesso.`
+                                                    });
+
+                                                    setAdminName("");
+                                                    setAdminId("");
+                                                    setLoading_AddAdmin(false);
+                                                    setDialog_AddAdm(false);
+                                                    // Atualizar lista de admins
+                                                    handleMenuButton("view_adms");
+                                                } else {
+                                                    toast({
+                                                        title: "Administração",
+                                                        description: data.message || "Ocorreu um erro ao adicionar o administrador."
+                                                    });
+
+                                                    setAdminName("");
+                                                    setAdminId("");
+                                                    setLoading_AddAdmin(false);
+                                                }
+                                            } catch (error) {
+                                                console.error('Erro ao adicionar admin:', error);
                                                 toast({
                                                     title: "Administração",
-                                                    description: `Ocorreu um erro ao adicionar o administrador.`
+                                                    description: "Erro ao conectar com o servidor."
                                                 });
-
-                                                setAdminName("");
-                                                setAdminId(0);
                                                 setLoading_AddAdmin(false);
-                                                return setDialog_AddAdm(false);
-                                            };
+                                            }
                                         };
 
                                         await createAdmin();
