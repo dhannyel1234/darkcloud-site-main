@@ -88,7 +88,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4/16 NÚCLEOS"
       ],
       recommended: false,
-      url: "/order"
+      url: "/order/basic?plan=prime"
     },
     {
       name: "Elite",
@@ -105,7 +105,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4/16 NÚCLEOS"
       ],
       recommended: false,
-      url: "/order"
+      url: "/order/basic?plan=elite"
     },
     {
       name: "Plus",
@@ -122,7 +122,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
         "4/16 NÚCLEOS"
       ],
       recommended: false,
-      url: "/order"
+      url: "/order/basic?plan=plus"
     }
   ];
 
