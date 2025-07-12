@@ -19,11 +19,15 @@ export async function GET(req: NextRequest) {
     const hasAlfaPlan = await userPlanController.hasActivePlan(userId, 'alfa');
     const hasOmegaPlan = await userPlanController.hasActivePlan(userId, 'omega');
     const hasBetaPlan = await userPlanController.hasActivePlan(userId, 'beta');
+    const hasElitePlan = await userPlanController.hasActivePlan(userId, 'elite');
+    const hasPlusPlan = await userPlanController.hasActivePlan(userId, 'plus');
 
     const activePlans = [];
     if (hasAlfaPlan) activePlans.push({ type: 'alfa' });
     if (hasOmegaPlan) activePlans.push({ type: 'omega' });
     if (hasBetaPlan) activePlans.push({ type: 'beta' });
+    if (hasElitePlan) activePlans.push({ type: 'elite' });
+    if (hasPlusPlan) activePlans.push({ type: 'plus' });
 
     console.log('DEBUG /api/user/plans userId:', userId, 'activePlans:', activePlans);
 

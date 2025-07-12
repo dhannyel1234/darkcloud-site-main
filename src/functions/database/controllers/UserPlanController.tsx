@@ -6,7 +6,7 @@ interface IUserPlan extends Document {
   _id: Types.ObjectId;
   userId: string;
   userName: string;
-  planType: 'alfa' | 'beta' | 'omega';
+  planType: 'alfa' | 'beta' | 'omega' | 'elite' | 'plus';
   status: 'active' | 'expired' | 'cancelled';
   activatedAt: Date;
   expiresAt: Date;
@@ -19,23 +19,18 @@ interface IUserPlan extends Document {
   cancelReason?: string;
   expiredAt: Date | null;
   lastQueueExit: Date | null;
+  redirectUrl?: string;
+  isPremiumPlan: boolean;
 }
 
 export class UserPlanController {
   private static instance: UserPlanController;
 
-  private constructor() {}
-
-  public static getInstance(): UserPlanController {
+  static getInstance(): UserPlanController {
     if (!UserPlanController.instance) {
       UserPlanController.instance = new UserPlanController();
     }
     return UserPlanController.instance;
-  }
-
-  private validatePlanType(planType: string): planType is 'alfa' | 'beta' | 'omega' {
-    const validTypes = ['alfa', 'beta', 'omega'];
-    return validTypes.includes(planType.toLowerCase());
   }
 
   async create(data: {
@@ -45,10 +40,11 @@ export class UserPlanController {
     expiresAt: Date | null;
     chargeId: string;
     paymentValue: number;
+    redirectUrl?: string;
   }) {
     await Database.connect();
 
-    const { userId, userName, planType, expiresAt, chargeId, paymentValue } = data;
+    const { userId, userName, planType, expiresAt, chargeId, paymentValue, redirectUrl } = data;
     
     console.log('[create] Iniciando criação de plano com dados:', {
       userId,
@@ -56,7 +52,8 @@ export class UserPlanController {
       planType,
       expiresAt,
       chargeId,
-      paymentValue
+      paymentValue,
+      redirectUrl
     });
     
     if (!userId || !userName || !planType) {
@@ -65,13 +62,14 @@ export class UserPlanController {
     }
 
     // Verificar se o tipo do plano é válido
-    if (!['alfa', 'beta', 'omega'].includes(planType.toLowerCase())) {
+    if (!['alfa', 'beta', 'omega', 'elite', 'plus'].includes(planType.toLowerCase())) {
       console.error('[create] Tipo de plano inválido:', planType);
       throw new Error("Tipo de plano inválido");
     }
 
-    // Validar expiresAt baseado no tipo do plano
-    if (planType.toLowerCase() !== 'alfa' && !expiresAt) {
+    // Para planos premium (ELITE, PLUS, OMEGA), não precisam de data de expiração
+    const isPremiumPlan = ['elite', 'plus', 'omega'].includes(planType.toLowerCase());
+    if (!isPremiumPlan && planType.toLowerCase() !== 'alfa' && !expiresAt) {
       console.error('[create] Data de expiração necessária para planos não-Alfa:', data);
       throw new Error("Data de expiração necessária para planos não-Alfa");
     }
@@ -85,6 +83,7 @@ export class UserPlanController {
       chargeId,
       now: new Date(),
       isAlfaPlan: planType.toLowerCase() === 'alfa',
+      isPremiumPlan,
       isManualAdd: chargeId === 'manual-add'
     });
     
@@ -105,21 +104,12 @@ export class UserPlanController {
     let finalExpiresAt = expiresAt;
 
     if (planType.toLowerCase() === 'alfa') {
-      // Se for um plano criado manualmente, usar o tempo especificado
-      // Se for um plano comprado, usar o tempo padrão de 1h20m
-      if (chargeId === 'manual-add') {
-        // Para planos manuais, alfaTimeLeftMs é a duração total em milissegundos
-        alfaTimeLeftMs = expiresAt.getTime() - new Date().getTime();
-        // Ajustar a data de expiração para null já que o plano ainda não começou
-        finalExpiresAt = null;
-        console.log('[create] Plano Alfa criado manualmente com duração:', alfaTimeLeftMs / (1000 * 60), 'minutos');
-      } else {
-        alfaTimeLeftMs = 80 * 60 * 1000; // 1h20m em milissegundos
-        finalExpiresAt = null; // Planos Alfa não usam expiresAt
-        console.log('[create] Plano Alfa comprado com duração padrão de 1h20m');
-      }
+      // Para plano Alfa, definir tempo fixo de 1h20m (80 minutos)
+      alfaTimeLeftMs = 80 * 60 * 1000; // 80 minutos em milissegundos
+      finalExpiresAt = null; // Plano Alfa não usa expiresAt
+      console.log('[create] Plano Alfa criado com tempo fixo de 1h20m');
     } else if (chargeId === 'manual-add') {
-      // Para planos Beta e Omega criados manualmente, usar a data de expiração fornecida
+      // Para planos criados manualmente, usar a data de expiração fornecida
       finalExpiresAt = expiresAt;
       // Garantir que a data de expiração seja no final do dia para planos Omega
       if (planType.toLowerCase() === 'omega') {
@@ -127,7 +117,7 @@ export class UserPlanController {
       }
       console.log('[create] Plano customizado criado manualmente com data de expiração:', finalExpiresAt);
     } else {
-      // Para planos Beta e Omega comprados, usar o tempo padrão
+      // Para outros planos comprados, usar o tempo padrão
       const now = new Date();
       if (planType.toLowerCase() === 'beta') {
         finalExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 dias
@@ -146,7 +136,9 @@ export class UserPlanController {
       expiresAtOriginal: expiresAt,
       finalExpiresAt,
       alfaTimeLeftMs,
-      isManual: chargeId === 'manual-add'
+      isManual: chargeId === 'manual-add',
+      isPremiumPlan,
+      redirectUrl
     });
 
     // Criar novo plano
@@ -165,17 +157,48 @@ export class UserPlanController {
       cancelDate: null,
       cancelReason: null,
       expiredAt: null,
-      lastQueueExit: null
+      lastQueueExit: null,
+      redirectUrl: redirectUrl || null
     });
+
+    const savedPlan = await userPlan.save();
+    console.log('[create] Plano criado com sucesso:', savedPlan);
+    return savedPlan;
+  }
+
+  async hasActivePlan(userId: string, planType: string): Promise<IUserPlan | null> {
+    await Database.connect();
     
-    try {
-      const savedPlan = await userPlan.save();
-      console.log('[create] Plano criado com sucesso:', savedPlan);
-      return savedPlan;
-    } catch (error) {
-      console.error('[create] Erro ao salvar plano:', error);
-      throw error;
+    const currentDate = new Date();
+    console.log('[hasActivePlan] Verificando plano ativo:', { userId, planType, currentDate });
+    
+    const query: any = {
+      userId,
+      planType: planType.toLowerCase(),
+      status: 'active'
+    };
+
+    // Para planos premium, não verificar data de expiração
+    const isPremiumPlan = ['elite', 'plus', 'omega'].includes(planType.toLowerCase());
+    if (!isPremiumPlan) {
+      if (planType.toLowerCase() === 'alfa') {
+        // Para plano Alfa, verificar se tem tempo restante
+        query.$or = [
+          { alfaTimeLeftMs: { $gt: 0 } },
+          { alfaTimeLeftMs: null }
+        ];
+      } else {
+        // Para outros planos, verificar data de expiração
+        query.expiresAt = { $gt: currentDate };
+      }
     }
+
+    console.log('[hasActivePlan] Query de busca:', query);
+    
+    const plan = await UserPlan.findOne(query).lean() as IUserPlan | null;
+    console.log('[hasActivePlan] Resultado:', plan);
+    
+    return plan;
   }
 
   async getActivePlans() {
@@ -189,9 +212,9 @@ export class UserPlanController {
       const plans = await UserPlan.find({
         status: 'active',
         $or: [
-          // Para planos não-Alfa, verificar data de expiração
+          // Para planos não-Alfa e não-premium, verificar data de expiração
           {
-            planType: { $ne: 'alfa' },
+            planType: { $nin: ['alfa', 'elite', 'plus', 'omega'] },
             expiresAt: { $gt: currentDate }
           },
           // Para planos Alfa, verificar tempo restante ou se é um plano novo
@@ -201,6 +224,10 @@ export class UserPlanController {
               { alfaTimeLeftMs: { $gt: 0 } },
               { alfaTimeLeftMs: null }
             ]
+          },
+          // Para planos premium, não verificar data de expiração
+          {
+            planType: { $in: ['elite', 'plus', 'omega'] }
           }
         ]
       }).lean();
@@ -209,7 +236,7 @@ export class UserPlanController {
         status: 'active',
         $or: [
           {
-            planType: { $ne: 'alfa' },
+            planType: { $nin: ['alfa', 'elite', 'plus', 'omega'] },
             expiresAt: { $gt: currentDate }
           },
           {
@@ -218,377 +245,111 @@ export class UserPlanController {
               { alfaTimeLeftMs: { $gt: 0 } },
               { alfaTimeLeftMs: null }
             ]
+          },
+          {
+            planType: { $in: ['elite', 'plus', 'omega'] }
           }
         ]
       });
       
       console.log('[getActivePlans] Planos encontrados:', JSON.stringify(plans, null, 2));
-
-      return plans.map(plan => {
-        let timeLeft = '';
-        if (plan.planType === 'alfa') {
-          if (plan.alfaTimeLeftMs === null) {
-            timeLeft = '1h 20m (não iniciado)';
-          } else {
-            const hours = Math.floor(plan.alfaTimeLeftMs / (1000 * 60 * 60));
-            const minutes = Math.floor((plan.alfaTimeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((plan.alfaTimeLeftMs % (1000 * 60)) / 1000);
-            timeLeft = `${hours}h ${minutes}m ${seconds}s`;
-          }
-        }
-
-        return {
-          id: plan._id.toString(),
-          userId: plan.userId || "Sem ID",
-          userName: plan.userName || "Usuário Desconhecido",
-          planType: plan.planType,
-          startDate: plan.activatedAt,
-          endDate: plan.expiresAt,
-          status: plan.status,
-          alfaTimeLeftMs: plan.alfaTimeLeftMs,
-          timeLeft: timeLeft
-        };
-      });
+      
+      return plans;
     } catch (error) {
-      console.error("[getActivePlans] Erro ao buscar planos ativos:", error);
-      throw new Error("Falha ao buscar planos ativos");
-    }
-  }
-
-  async getAllActivePlans() {
-    try {
-      await Database.connect();
-      
-      // Buscar apenas planos ativos que não estão expirados
-      const plans = await UserPlan.find({
-        status: 'active',
-        expiresAt: { $gt: new Date() }
-      }).lean();
-
-      return plans.map(plan => ({
-        id: plan._id.toString(),
-        userId: plan.userId || "Sem ID",
-        userName: plan.userName || "Usuário Desconhecido",
-        planType: plan.planType,
-        startDate: plan.activatedAt,
-        endDate: plan.expiresAt,
-        status: plan.status
-      }));
-    } catch (error) {
-      console.error("Erro ao buscar todos os planos ativos:", error);
-      throw new Error("Falha ao buscar todos os planos ativos");
-    }
-  }
-
-  async getExpiredPlans() {
-    try {
-      await Database.connect();
-      
-      console.log('[getExpiredPlans] Buscando planos expirados');
-      
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
-      // Buscar planos com status 'expired' dos últimos 30 dias e também planos ativos que já expiraram
-      const plans = await UserPlan.find({
-        $or: [
-          { 
-            status: 'expired',
-            expiredAt: { $gte: thirtyDaysAgo }
-          },
-          {
-            status: 'active',
-            expiresAt: { $lte: new Date() }
-          }
-        ]
-      })
-      .sort({ expiresAt: -1 }) // Ordenar por data de expiração, mais recentes primeiro
-      .lean();
-
-      console.log(`[getExpiredPlans] Encontrados ${plans.length} planos expirados`);
-
-      const formattedPlans = plans.map(plan => {
-        const diasExpirado = Math.floor((new Date().getTime() - new Date(plan.expiresAt).getTime()) / (1000 * 60 * 60 * 24));
-        
-        const formattedPlan = {
-          id: plan._id.toString(),
-          userId: plan.userId || 'N/A',
-          userName: plan.userName || 'N/A',
-          planType: plan.planType,
-          startDate: plan.activatedAt,
-          endDate: plan.expiresAt,
-          status: 'expired', // Forçar status como expirado para exibição
-          expiredAt: plan.expiredAt || plan.expiresAt,
-          diasExpirado: diasExpirado,
-          expiredAtFormatted: new Date(plan.expiredAt || plan.expiresAt).toLocaleString('pt-BR')
-        };
-
-        console.log('[getExpiredPlans] Plano formatado:', formattedPlan);
-        return formattedPlan;
-      });
-
-      return formattedPlans;
-    } catch (error) {
-      console.error("[getExpiredPlans] Erro ao buscar planos expirados:", error);
-      throw new Error("Falha ao buscar planos expirados");
-    }
-  }
-
-  async getCancelledPlans() {
-    try {
-      await Database.connect();
-      
-      const plans = await UserPlan.find({
-        status: 'cancelled'
-      }).lean();
-
-      return plans.map(plan => ({
-        id: plan._id.toString(),
-        userId: plan.userId || 'N/A',
-        userName: plan.userName || 'N/A',
-        planType: plan.planType,
-        startDate: plan.activatedAt,
-        endDate: plan.expiresAt,
-        status: plan.status,
-        cancelDate: plan.cancelDate,
-        cancelReason: plan.cancelReason
-      }));
-    } catch (error) {
-      console.error("Erro ao buscar planos cancelados:", error);
-      throw new Error("Falha ao buscar planos cancelados");
-    }
-  }
-
-  async deactivatePlan(userId: string, reason: string) {
-    try {
-      await Database.connect();
-      
-      // Primeiro, buscar o plano para saber seu tipo
-      const existingPlan = await UserPlan.findOne({
-        userId,
-        status: { $in: ['active', 'expired'] }
-      }).lean() as IUserPlan | null;
-
-      if (!existingPlan) {
-        throw new Error("Plano não encontrado");
-      }
-
-      console.log('[deactivatePlan] Cancelando plano:', {
-        userId,
-        planType: existingPlan.planType,
-        oldStatus: existingPlan.status,
-        reason
-      });
-
-      // Atualizar o plano para cancelado
-      const plan = await UserPlan.findOneAndUpdate(
-        { 
-          _id: existingPlan._id,
-          status: { $in: ['active', 'expired'] }
-        },
-        { 
-          $set: {
-            status: 'cancelled',
-            cancelDate: new Date(),
-            cancelReason: reason,
-            isInQueue: false,
-            queueStartedAt: null,
-            alfaTimeLeftMs: 0 // Zerar o tempo restante
-          }
-        },
-        { new: true }
-      ).lean() as IUserPlan | null;
-
-      if (!plan) {
-        console.error('[deactivatePlan] Falha ao atualizar plano:', {
-          userId,
-          planType: existingPlan.planType,
-          oldStatus: existingPlan.status
-        });
-        throw new Error("Falha ao atualizar o plano");
-      }
-
-      // Remover da fila se estiver nela
-      const Queue = (await import('@/functions/database/schemas/QueueSchema')).default;
-      await Queue.deleteOne({ userId });
-
-      console.log('[deactivatePlan] Plano cancelado com sucesso:', {
-        userId,
-        planType: plan.planType,
-        oldStatus: existingPlan.status,
-        newStatus: plan.status,
-        reason
-      });
-
-      return plan;
-    } catch (error) {
-      console.error("[deactivatePlan] Erro ao desativar plano:", error);
-      throw new Error("Falha ao desativar plano");
-    }
-  }
-
-  async hasActivePlan(userId: string, planType: string) {
-    await Database.connect();
-    
-    const currentDate = new Date();
-    const plan = await UserPlan.findOne({
-      userId,
-      planType: planType.toLowerCase(),
-      status: 'active',
-      $or: [
-        { expiresAt: { $gt: currentDate } },
-        { 
-          planType: 'alfa',
-          expiresAt: null,
-          alfaTimeLeftMs: { $gt: 0 }
-        }
-      ]
-    }).lean() as IUserPlan | null;
-
-    console.log('[hasActivePlan] Verificando plano:', {
-      userId,
-      planType,
-      planFound: !!plan,
-      planDetails: plan
-    });
-
-    return !!plan;
-  }
-
-  async markAsInQueue(userId: string, planType: string) {
-    await Database.connect();
-    
-    const plan = await UserPlan.findOne({
-      userId,
-      planType: planType.toLowerCase(),
-      status: 'active'
-    }).lean() as IUserPlan | null;
-
-    if (!plan) {
-      throw new Error("Plano não encontrado");
-    }
-
-    await UserPlan.updateOne(
-      { _id: plan._id },
-      { 
-        $set: { 
-          isInQueue: true,
-          queueStartedAt: new Date()
-        }
-      }
-    );
-
-    return true;
-  }
-
-  async markAsOutOfQueue(userId: string, planType: string) {
-    await Database.connect();
-    
-    const plan = await UserPlan.findOne({
-      userId,
-      planType: planType.toLowerCase(),
-      status: 'active'
-    }).lean() as IUserPlan | null;
-
-    if (!plan) {
-      throw new Error("Plano não encontrado");
-    }
-
-    // Calcular tempo restante
-    if (plan.queueStartedAt) {
-      const now = new Date();
-      const timeInQueue = now.getTime() - plan.queueStartedAt.getTime();
-      const timeLeft = (plan.alfaTimeLeftMs || 0) - timeInQueue;
-
-      await UserPlan.updateOne(
-        { _id: plan._id },
-        { 
-          $set: { 
-            isInQueue: false,
-            queueStartedAt: null,
-            alfaTimeLeftMs: Math.max(0, timeLeft),
-            lastQueueExit: now
-          }
-        }
-      );
-    }
-
-    return true;
-  }
-
-  async expireOldPlans() {
-    try {
-      await Database.connect();
-      
-      const now = new Date();
-      
-      // Buscar planos ativos que já expiraram
-      const expiredPlans = await UserPlan.find({
-        status: 'active',
-        expiresAt: { $lte: now }
-      });
-
-      if (expiredPlans.length > 0) {
-        console.log(`[expireOldPlans] Encontrados ${expiredPlans.length} planos para expirar`);
-        
-        // Atualizar todos os planos expirados de uma vez
-        const updateResult = await UserPlan.updateMany(
-          {
-            _id: { $in: expiredPlans.map(plan => plan._id) }
-          },
-          {
-            $set: {
-              status: 'expired',
-              expiredAt: now // Adicionar data de expiração
-            }
-          }
-        );
-
-        console.log('[expireOldPlans] Planos atualizados:', updateResult);
-        return updateResult;
-      }
-
-      return null;
-    } catch (error) {
-      console.error('[expireOldPlans] Erro ao expirar planos:', error);
+      console.error('[getActivePlans] Erro ao buscar planos ativos:', error);
       throw error;
     }
   }
 
-  async findPlan(userId: string, planType: string) {
+  async updateAlfaTime(userId: string, planType: string, timeLeftMs: number) {
     await Database.connect();
     
-    return await UserPlan.findOne({
+    console.log('[updateAlfaTime] Atualizando tempo do plano Alfa:', {
       userId,
-      planType: planType.toLowerCase(),
-      status: 'active'
-    }).lean() as IUserPlan | null;
+      planType,
+      timeLeftMs
+    });
+    
+    const result = await UserPlan.findOneAndUpdate(
+      { userId, planType: planType.toLowerCase(), status: 'active' },
+      { alfaTimeLeftMs: timeLeftMs },
+      { new: true }
+    );
+    
+    console.log('[updateAlfaTime] Resultado:', result);
+    return result;
   }
 
-  async deletePlan(userId: string, planType: string) {
-    if (!this.validatePlanType(planType)) {
-      throw new Error("Tipo de plano inválido");
-    }
-
+  async setQueueStatus(userId: string, planType: string, isInQueue: boolean) {
     await Database.connect();
     
-    const plan = await UserPlan.findOne({
+    console.log('[setQueueStatus] Definindo status da fila:', {
       userId,
-      planType: planType.toLowerCase(),
-      status: 'cancelled'
-    }).lean() as IUserPlan | null;
-
-    if (!plan) {
-      throw new Error("Plano não encontrado ou não está cancelado");
-    }
-
-    // Remover o plano
-    await UserPlan.deleteOne({
-      _id: plan._id
+      planType,
+      isInQueue
     });
+    
+    const updateData: any = { isInQueue };
+    
+    if (isInQueue) {
+      updateData.queueStartedAt = new Date();
+    } else {
+      updateData.lastQueueExit = new Date();
+    }
+    
+    const result = await UserPlan.findOneAndUpdate(
+      { userId, planType: planType.toLowerCase(), status: 'active' },
+      updateData,
+      { new: true }
+    );
+    
+    console.log('[setQueueStatus] Resultado:', result);
+    return result;
+  }
 
-    return true;
+  async cancelPlan(userId: string, planType: string, reason: string) {
+    await Database.connect();
+    
+    console.log('[cancelPlan] Cancelando plano:', {
+      userId,
+      planType,
+      reason
+    });
+    
+    const result = await UserPlan.findOneAndUpdate(
+      { userId, planType: planType.toLowerCase(), status: 'active' },
+      {
+        status: 'cancelled',
+        cancelDate: new Date(),
+        cancelReason: reason,
+        isInQueue: false
+      },
+      { new: true }
+    );
+    
+    console.log('[cancelPlan] Resultado:', result);
+    return result;
+  }
+
+  async expirePlan(userId: string, planType: string) {
+    await Database.connect();
+    
+    console.log('[expirePlan] Expirando plano:', {
+      userId,
+      planType
+    });
+    
+    const result = await UserPlan.findOneAndUpdate(
+      { userId, planType: planType.toLowerCase(), status: 'active' },
+      {
+        status: 'expired',
+        expiredAt: new Date(),
+        isInQueue: false
+      },
+      { new: true }
+    );
+    
+    console.log('[expirePlan] Resultado:', result);
+    return result;
   }
 }
-
-export default UserPlanController.getInstance();

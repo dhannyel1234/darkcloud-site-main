@@ -65,7 +65,6 @@ export default function ButtonsComponent() {
                 initial="hidden"
                 animate="visible"
             >
-                {/* Navegação moderna com animações */}
                 <motion.ul className="flex items-center space-x-3">
                     {/* Home - Sempre o primeiro */}
                     <motion.li variants={itemVariants}>
@@ -92,6 +91,21 @@ export default function ButtonsComponent() {
                             </motion.div>
                         </Link>
                     </motion.li>
+
+                    {/* Chat */}
+                    {session?.user && (
+                        <motion.li variants={itemVariants}>
+                            <Link href="/chat" passHref>
+                                <motion.div 
+                                    className="relative px-3 py-2 text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                                    whileHover={{ scale: 1.03 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                >
+                                    Chat
+                                </motion.div>
+                            </Link>
+                        </motion.li>
+                    )}
 
                     {/* Discord - mantém a funcionalidade original */}
                     <motion.li variants={itemVariants}>
@@ -129,4 +143,4 @@ export default function ButtonsComponent() {
             </motion.nav>
         </div>
     );
-};
+}

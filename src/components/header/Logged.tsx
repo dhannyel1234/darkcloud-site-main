@@ -1,21 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { User } from 'next-auth';
-import { LayoutDashboard, Users, Shield, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { signOut } from 'next-auth/react';
+import { User } from 'next-auth';
+import { LayoutDashboard, Users, Shield, Settings } from 'lucide-react';
 
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuPortal,
     DropdownMenuSeparator,
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
-    DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 
 interface LoggedProps {
@@ -54,7 +53,6 @@ export default function LoggedComponent({ user }: LoggedProps) {
                             <div className="space-y-1 px-1">
                                 <DropdownMenuItem 
                                     onClick={() => {
-                                        // Redirecionar para o app
                                         window.location.href = 'https://app.darkcloud.store/';
                                     }}
                                     className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-indigo-500/10 focus:bg-white/5 transition-all group"
@@ -81,20 +79,31 @@ export default function LoggedComponent({ user }: LoggedProps) {
                                 {isAdmin && (
                                     <DropdownMenuSub>
                                         <DropdownMenuSubTrigger className="mb-0.5 cursor-pointer text-blue-500 focus:bg-blue-500/10 data-[state=open]:bg-blue-500/10">
-                                            <Shield />
+                                            <Shield className="mr-2 h-4 w-4" />
                                             Administração
                                         </DropdownMenuSubTrigger>
                                         <DropdownMenuPortal>
                                             <DropdownMenuSubContent className="p-1 space-y-1 bg-[rgba(7,8,12,255)]">
                                                 {/* Dashboard Admin */}
                                                 <DropdownMenuItem 
-                                                    className="cursor-pointer" 
+                                                    className="cursor-pointer flex items-center" 
                                                     onClick={() => {
                                                         window.location.href = '/admin';
                                                     }}
                                                 >
-                                                    <LayoutDashboard />
+                                                    <LayoutDashboard className="mr-2 h-4 w-4" />
                                                     Painel de Administração
+                                                </DropdownMenuItem>
+
+                                                {/* AI Config */}
+                                                <DropdownMenuItem 
+                                                    className="cursor-pointer flex items-center" 
+                                                    onClick={() => {
+                                                        window.location.href = '/admin/ai-config';
+                                                    }}
+                                                >
+                                                    <Settings className="mr-2 h-4 w-4" />
+                                                    Configurar IA
                                                 </DropdownMenuItem>
                                             </DropdownMenuSubContent>
                                         </DropdownMenuPortal>
@@ -105,13 +114,12 @@ export default function LoggedComponent({ user }: LoggedProps) {
 
                                 {/* Logout */}
                                 <DropdownMenuItem
-                                    onClick={() => signOut()}
-                                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-red-500/10 hover:to-pink-500/10 focus:bg-white/5 transition-all group"
+                                    onClick={() => {
+                                        window.location.href = '/api/auth/signout';
+                                    }}
+                                    className="cursor-pointer text-red-500 hover:text-red-400 focus:text-red-400"
                                 >
-                                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 group-hover:bg-red-500/20 transition-colors">
-                                        <LogOut className="w-4 h-4 text-red-400" />
-                                    </div>
-                                    <span className="text-white/80 group-hover:text-white transition-colors">Sair</span>
+                                    Sair
                                 </DropdownMenuItem>
                             </div>
                         </DropdownMenuContent>
