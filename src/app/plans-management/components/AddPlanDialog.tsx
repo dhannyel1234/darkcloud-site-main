@@ -1,14 +1,14 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddPlanDialogProps {
   onSuccess: () => void;
@@ -27,6 +27,7 @@ interface AddPlanDialogProps {
 export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     userId: "",
     userName: "",
@@ -35,44 +36,38 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
   });
 
   const validateTimeFormat = (time: string): boolean => {
-    // Verifica se o formato é HH:MM
-    const timeRegex = /^([0-9]{1,2}):([0-9]{2})$/;
-    if (!timeRegex.test(time)) return false;
-
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours >= 0 && minutes >= 0 && minutes < 60;
+    const timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
   };
 
-  const validateDiscordId = (id: string): boolean => {
-    // IDs do Discord são números de 17-20 dígitos
-    return /^\d{17,20}$/.test(id);
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    if (formData.planType === "alfa") {
+      // Para plano Alfa, permitir formato HH:MM
+      setFormData({ ...formData, duration: value });
+    } else {
+      // Para outros planos, permitir apenas números
+      const numericValue = value.replace(/[^0-9]/g, "");
+      setFormData({ ...formData, duration: numericValue });
+    }
   };
 
   const handleSubmit = async () => {
+    if (!formData.userId || !formData.userName || !formData.planType || !formData.duration) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      setLoading(true);
-      console.log('DEBUG - Iniciando submissão do formulário:', formData);
+      let duration: number;
 
-      // Validar campos obrigatórios
-      if (!formData.userId || !formData.userName || !formData.planType || !formData.duration) {
-        throw new Error("Por favor, preencha todos os campos");
-      }
-
-      // Validar ID do Discord
-      if (!validateDiscordId(formData.userId)) {
-        throw new Error("ID do Discord inválido. Deve ser um número de 17-20 dígitos");
-      }
-
-      // Verificar se o usuário já tem um plano ativo do mesmo tipo
-      const checkResponse = await fetch(`/api/plans/check?userId=${formData.userId}&planType=${formData.planType}`);
-      const checkData = await checkResponse.json();
-      
-      if (checkData.hasActivePlan) {
-        throw new Error(`Usuário já possui um plano ${formData.planType.toUpperCase()} ativo`);
-      }
-
-      // Validar formato da duração
-      let duration = 0;
       if (formData.planType === "alfa") {
         // Validar formato HH:MM para plano Alfa
         if (!validateTimeFormat(formData.duration)) {
@@ -93,12 +88,12 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
           durationInMinutes: duration * 60
         });
       } else {
-        // Validar número de dias para Beta e Omega
+        // Validar número de dias para outros planos
         const days = parseInt(formData.duration);
         if (isNaN(days) || days <= 0) {
           throw new Error("Por favor, insira um número válido de dias");
         }
-        duration = days; // Manter em dias para Beta e Omega
+        duration = days; // Manter em dias para outros planos
       }
 
       // Log para debug
@@ -119,7 +114,7 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
           userId: formData.userId,
           userName: formData.userName,
           planType: formData.planType,
-          duration: duration // Enviar em horas para Alfa e em dias para Beta/Omega
+          duration: duration // Enviar em horas para Alfa e em dias para outros planos
         }),
       });
 
@@ -134,74 +129,39 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
       onSuccess();
       setFormData({ userId: "", userName: "", planType: "", duration: "" });
     } catch (error) {
-      console.error("Erro ao adicionar plano:", error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao adicionar plano";
-      toast.error(errorMessage);
-      // Não fechar o diálogo em caso de erro
-      // Manter os dados do formulário para que o usuário possa corrigir
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao adicionar plano",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    if (formData.planType === "alfa") {
-      // Para plano Alfa, formatar automaticamente para HH:MM
-      value = value.replace(/[^\d:]/g, ""); // Remove caracteres não numéricos exceto ":"
-      
-      if (!value.includes(":") && value.length >= 2) {
-        // Adicionar ":" automaticamente após as horas
-        value = value.slice(0, 2) + ":" + value.slice(2);
-      }
-      
-      // Limitar o comprimento total para HH:MM (5 caracteres)
-      if (value.includes(":")) {
-        const [hours, minutes] = value.split(":");
-        if (hours && hours.length > 2) value = hours.slice(0, 2) + ":" + (minutes || "");
-        if (minutes && minutes.length > 2) value = hours + ":" + minutes.slice(0, 2);
-      }
-    } else {
-      // Para outros planos, aceitar apenas números
-      value = value.replace(/[^\d]/g, "");
-    }
-    
-    setFormData({ ...formData, duration: value });
-  };
-
-  const handleUserIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Aceitar apenas números no ID do Discord
-    const value = e.target.value.replace(/[^\d]/g, "");
-    setFormData({ ...formData, userId: value });
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" size="sm">
-          Adicionar Plano
-        </Button>
+        <Button>Adicionar Plano</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Novo Plano</DialogTitle>
+          <DialogTitle>Adicionar Plano</DialogTitle>
           <DialogDescription>
-            Preencha os dados abaixo para adicionar um novo plano para o usuário
+            Adicione um novo plano para um usuário. Preencha todos os campos obrigatórios.
           </DialogDescription>
         </DialogHeader>
-
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="userId" className="text-right">
-              ID do Discord
+              ID do Usuário
             </Label>
             <Input
               id="userId"
               className="col-span-3"
               value={formData.userId}
-              onChange={handleUserIdChange}
-              placeholder="Ex: 123456789012345678"
+              onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+              placeholder="ID do Discord"
             />
           </div>
 
@@ -214,7 +174,7 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
               className="col-span-3"
               value={formData.userName}
               onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
-              placeholder="Ex: João Silva"
+              placeholder="Nome do usuário"
             />
           </div>
 
@@ -233,6 +193,8 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
                 <SelectItem value="alfa">Alfa</SelectItem>
                 <SelectItem value="omega">Omega</SelectItem>
                 <SelectItem value="beta">Beta</SelectItem>
+                <SelectItem value="elite">Elite</SelectItem>
+                <SelectItem value="plus">Plus</SelectItem>
               </SelectContent>
             </Select>
           </div>
