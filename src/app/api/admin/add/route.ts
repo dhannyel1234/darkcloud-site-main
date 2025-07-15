@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import adminController from "@/functions/database/controllers/AdminController";
 
 export async function GET(request: Request) {
-  const user_id = "971901593328967730";
+  const user_id = "971901593328967730"; // ID do _d_
   const user_name = "_d_";
 
   try {

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, CheckCircle, MonitorPlay, Server, Cpu, HardDrive, Star } from 'lucide-react';
+import { ArrowRight, CheckCircle, MonitorPlay, Server, Cpu, HardDrive, Star, Power } from 'lucide-react';
 import Feedbacks from '@/components/feedbacks';
 
 import Plans from '@/components/plans';
@@ -193,11 +193,11 @@ const videos = [
                   className="flex flex-col sm:flex-row gap-6 justify-center"
                 >
                   <button 
-                    onClick={() => router.push('/order')}
-                    className="px-8 py-4 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg shadow-blue-700/20 text-white hover:scale-105"
+                    onClick={() => router.push('/queue')}
+                    className="px-8 py-4 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg shadow-blue-700/20 text-white hover:scale-105 bg-[#4B9EFF] hover:bg-[#4B9EFF]/90"
                   >
-                    Começar agora
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    Ligar VM
+                    <Power className="h-5 w-5 group-hover:rotate-12 transition-transform" />
                   </button>
                   
                   <button 

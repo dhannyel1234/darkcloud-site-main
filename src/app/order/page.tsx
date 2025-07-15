@@ -72,9 +72,9 @@ export default function Order() {
     const [isCouponLoading, setIsCouponLoading] = useState(false);
     
     const plans = {
-        "Semanal": 69.97,
-        "Quinzenal": 89.97,
-        "Mensal": 129.97
+        "Semanal": 89.97,
+        "Quinzenal": 109.97,
+        "Mensal": 149.97
     };
     
     // Variantes de animação

@@ -181,7 +181,7 @@ export class QueueController {
                 userPlan.isInQueue = true;
                 userPlan.queueStartedAt = startTime;
                 userPlan.expiresAt = endTime; // Define a expiração real
-                userPlan.alfaTimeLeftMs = null; // Limpa o tempo restante pois agora está correndo
+                userPlan.alfaTimeLeftMs = null;
                 await userPlan.save();
             } else {
                 // Para outros planos, apenas ativa na fila
@@ -191,6 +191,9 @@ export class QueueController {
             }
 
             await userInQueue.save();
+
+            // Atualizar posições dos usuários restantes na fila
+            await this.updateQueuePositions();
 
             return { success: true, message: 'Usuário ativado com sucesso', userInQueue };
         } catch (error) {
@@ -224,6 +227,9 @@ export class QueueController {
                     { status: 'available', currentUserId: null }
                 );
             }
+
+            // Atualizar posições dos usuários restantes na fila
+            await this.updateQueuePositions();
 
             return { success: true, message: 'Sessão finalizada com sucesso' };
         } catch (error) {
@@ -328,6 +334,27 @@ export class QueueController {
         } catch (error) {
             console.error('Erro ao obter estatísticas:', error);
             return { success: false, message: 'Erro interno do servidor' };
+        }
+    }
+
+    // Atualizar posições na fila
+    async updateQueuePositions() {
+        try {
+            // Buscar todos os usuários aguardando, ordenados por posição
+            const waitingUsers = await Queue.find({ status: 'waiting' }).sort({ position: 1 });
+            
+            // Atualizar posição de cada usuário
+            for (let i = 0; i < waitingUsers.length; i++) {
+                const user = waitingUsers[i];
+                if (user.position !== i + 1) {
+                    await Queue.updateOne(
+                        { _id: user._id },
+                        { $set: { position: i + 1 } }
+                    );
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar posições na fila:', error);
         }
     }
 }

@@ -30,9 +30,12 @@ interface PaymentData {
 }
 
 const planValues: Record<string, number> = {
-  alfa: 0.01,
-  omega: 0.01,
-  beta: 0.01,
+  alfa: 4.97,
+  beta: 49.97,
+  omega: 69.97,
+  prime: 89.97,
+  plus: 109.97,
+  elite: 149.97,
 };
 
 export default function BasicPaymentPage() {
@@ -109,12 +112,6 @@ export default function BasicPaymentPage() {
   }, [plan]);
 
   useEffect(() => {
-    if (isPaid) {
-      window.location.href = '/queue';
-    }
-  }, [isPaid]);
-
-  useEffect(() => {
     let interval: NodeJS.Timeout;
     if (paymentId && paymentData.status === 'success' && !isPaid) {
       interval = setInterval(async () => {
@@ -127,6 +124,21 @@ export default function BasicPaymentPage() {
     }
     return () => clearInterval(interval);
   }, [paymentId, paymentData.status, isPaid]);
+
+  useEffect(() => {
+    if (isPaid) {
+      // Verificar se é um plano premium
+      const premiumPlans = ['elite', 'prime', 'plus'];
+      const isPremiumPlan = plan && premiumPlans.includes(plan.toLowerCase());
+      
+      // Redirecionar com base no tipo do plano
+      if (isPremiumPlan) {
+        window.location.href = 'https://app.darkcloud.store/';
+      } else {
+        window.location.href = '/queue';
+      }
+    }
+  }, [isPaid, plan]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -185,7 +197,7 @@ export default function BasicPaymentPage() {
                 <div className="space-y-2 text-sm text-gray-300">
                   <p><strong>Valor:</strong> {formatCurrency(paymentData.charge.value)}</p>
                   <p><strong>Status:</strong> <span className="text-green-500">{paymentData.charge.status}</span></p>
-                  <p><strong>Expira em:</strong> {paymentData.charge.expiresIn / 3600}h</p>
+                  <p><strong>Expira em:</strong> {plan.toLowerCase() === 'alfa' ? '1h' : plan.toLowerCase() === 'beta' ? '1 semana' : ''}</p>
                 </div>
               </div>
             )}

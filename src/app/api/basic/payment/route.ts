@@ -22,9 +22,9 @@ export async function POST(request: Request) {
 
     // Definir valores dos planos básicos em centavos
     const planValues: Record<string, number> = {
-      alfa: 1,      // R$ 0,01
-      omega: 1,     // R$ 0,01
-      beta: 3990    // R$ 39,90
+      alfa: 497,      // R$ 4,97
+      omega: 6997,    // R$ 69,97
+      beta: 4997      // R$ 49,97
     };
     
     const value = planValues[plan as keyof typeof planValues];

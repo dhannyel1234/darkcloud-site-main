@@ -138,7 +138,7 @@ function calculatePlanExpiration(planType: string): Date {
       // Plano Beta: 7 dias
       return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     case 'omega':
-      // Plano Omega: 1 mês (final do dia)
+      // Plano Omega: 30 dias (final do dia)
       const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       return new Date(expiresAt.getFullYear(), expiresAt.getMonth(), expiresAt.getDate(), 23, 59, 59);
     default:

@@ -1,11 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       { hostname: 'image.api.playstation.com' },
@@ -15,9 +9,16 @@ const nextConfig = {
       { hostname: 'assets.nintendo.com' },
       { hostname: 'cdn.discordapp.com' },
       { hostname: 'i.ytimg.com' },
+      { hostname: 'images-ext-1.discordapp.net' },
     ],
   },
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;

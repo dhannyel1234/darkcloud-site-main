@@ -69,16 +69,16 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
     {
       name: "Prime",
       tier: "premium",
-      price: "R$59,97",
+      price: "R$89,97",
       period: "/semana",
       description: "Uma semana de máquina para jogar sem limites a qualquer momento.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "448 JOGOS DA STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "SPOT AS 50-AM",
-        "SEM FILA",
+        "CONTEM SPOT",
+        "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
       recommended: false,
@@ -87,16 +87,16 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
     {
       name: "Elite",
       tier: "premium",
-      price: "R$124,97",
+      price: "R$149,97",
       period: "/mês",
       description: "Um mês de máquina para jogar sem limites a qualquer momento e de onde estiver.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "448 JOGOS DA STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "SPOT AS 50-AM",
-        "SEM FILA",
+        "CONTEM SPOT",
+        "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
       recommended: false,
@@ -105,16 +105,16 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
     {
       name: "Plus",
       tier: "premium",
-      price: "R$79,97",
+      price: "R$109,97",
       period: "/15 dias",
       description: "15 dias de máquina para você trabalhar e jogar ao mesmo tempo sem perder tempo.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "448 JOGOS DA STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "SPOT AS 50-AM",
-        "SEM FILA",
+        "CONTEM SPOT",
+        "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
       recommended: false,
@@ -173,8 +173,8 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
             whileHover={{ y: -5 }}
           >
             <div className="absolute top-0 left-0 p-3">
-              <div className="inline-flex items-center justify-center bg-black/40 backdrop-blur-sm border border-gray-700/50 rounded-full px-3 py-1">
-                <span className="text-xs font-medium text-gray-300">Renovação {plan.name}</span>
+              <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${plan.name === 'Elite' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}`}>
+                <span className={`text-xs font-medium ${plan.name === 'Elite' ? 'text-yellow-300' : 'text-blue-300'}`}>Renovação {plan.name}</span>
               </div>
             </div>
             
@@ -318,11 +318,20 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
               </motion.div>
             )}
 
-            <div className="absolute top-0 left-0 p-3">
-              <div className="inline-flex items-center justify-center bg-blue-900/40 backdrop-blur-sm border border-blue-500/30 rounded-full px-3 py-1">
-                <span className="text-xs font-medium text-blue-100">Renovação {plan.name}</span>
+            {plan.tier === 'premium' && (
+              <div className="absolute top-0 right-0 p-3">
+                <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${plan.name === 'Elite' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}`}>
+                  <motion.span 
+                    initial={{ opacity: 0.7 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
+                    className={`text-xs font-medium ${plan.name === 'Elite' ? 'text-yellow-300' : 'text-blue-300'}`}
+                  >
+                    30% OFF
+                  </motion.span>
+                </div>
               </div>
-            </div>
+            )}
             
             <div className="relative p-8 pt-12">
               {/* Brilho no canto superior quando hover */}
