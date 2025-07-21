@@ -425,7 +425,7 @@ export default function QueuePage() {
                                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path fill="#38bdf8" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5" fill="#60a5fa"/></svg>
                                 IP DA MÁQUINA
                             </span>
-                            <span className="text-white text-lg font-mono select-all font-bold tracking-wider mt-0.5 mb-1">{machineInfo?.ip || 'N/A'}</span>
+                            <span className="text-white text-lg font-mono select-all font-bold tracking-wider mt-0.5 mb-1">{machineInfo.ip}</span>
                         </div>
                         <div className="w-full border-t border-white/10 my-1"></div>
                         <div className="w-full flex flex-col items-center mb-1">
@@ -434,7 +434,7 @@ export default function QueuePage() {
                                 DATA DE EXPIRAÇÃO
                             </span>
                             <span className="text-white text-base font-bold mt-0.5 mb-1">
-                                {queueStatus.plan.endTime ? formatExpirationDate(queueStatus.plan.endTime.toString()) : '---'}
+                                {queueStatus.plan.endTime ? formatExpirationDate(queueStatus.plan.endTime) : '---'}
                             </span>
                         </div>
                         <div className="w-full border-t border-white/10 my-1"></div>

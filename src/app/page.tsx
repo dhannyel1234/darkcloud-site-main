@@ -9,6 +9,7 @@ import Feedbacks from '@/components/feedbacks';
 
 import Plans from '@/components/plans';
 import { useEffect, useState } from 'react';
+import PromotionBanner from '@/components/PromotionBanner';
 
 export default function Home() {
   const router = useRouter();

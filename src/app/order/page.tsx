@@ -72,9 +72,9 @@ export default function Order() {
     const [isCouponLoading, setIsCouponLoading] = useState(false);
     
     const plans = {
-        "Semanal": { price: 89.97, type: "prime" },
-        "Quinzenal": { price: 109.97, type: "plus" },
-        "Mensal": { price: 149.97, type: "elite" }
+        "Semanal": 69.97,
+        "Quinzenal": 89.97,
+        "Mensal": 129.97
     };
     
     // Variantes de animação
@@ -117,7 +117,7 @@ export default function Order() {
     };
 
     const calculateFinalPrice = () => {
-        const basePrice = plans[isSelectedPlan as keyof typeof plans].price;
+        const basePrice = plans[isSelectedPlan as keyof typeof plans];
         if (isCouponApplied && couponDiscount > 0) {
             const discountAmount = (basePrice * couponDiscount) / 100;
             return basePrice - discountAmount;
@@ -138,8 +138,7 @@ export default function Order() {
 
             localStorage.setItem('lastPaymentAttempt', currentTime.toString());
 
-            const selectedPlan = plans[isSelectedPlan as keyof typeof plans];
-            const planType = selectedPlan.type;
+            const name = isSelectedPlan;
             const price = Number(calculateFinalPrice());
 
             try {
@@ -159,7 +158,6 @@ export default function Order() {
 
                 const cachedSession = JSON.parse(localStorage.getItem('session') || '{}');
                 const customId = await generateId();
-                
                 // Se um cupom foi aplicado, registrar seu uso
                 if (isCouponApplied && couponCode) {
                     await fetch('/api/coupon/use', {
@@ -173,10 +171,8 @@ export default function Order() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        planType,
-                        value: price,
                         customId, 
-                        name: isSelectedPlan, 
+                        name, 
                         price, 
                         email: cachedSession.user?.email,
                         couponApplied: isCouponApplied ? couponCode : null,
@@ -423,7 +419,7 @@ export default function Order() {
         </SelectTrigger>
         <SelectContent className="bg-[#171922] border border-gray-700 shadow-xl">
           <SelectGroup>
-            {Object.entries(plans).map(([planName, planData]) => (
+            {Object.entries(plans).map(([planName, planPrice]) => (
               <SelectItem 
                 key={planName} 
                 value={planName} 
@@ -431,7 +427,7 @@ export default function Order() {
               >
                 <div className="flex justify-between items-center w-full">
                   <span className="font-medium">{planName}</span>
-                  <span className="text-indigo-300 font-semibold">R$ {planData.price.toFixed(2)}</span>
+                  <span className="text-indigo-300 font-semibold">R$ {planPrice.toFixed(2)}</span>
                 </div>
               </SelectItem>
             ))}
@@ -443,7 +439,7 @@ export default function Order() {
         <div className="pt-2 px-1 flex justify-between items-center text-sm">
           <span className="text-gray-400">Plano selecionado</span>
           <span className="text-white font-medium">
-            {isSelectedPlan} - R$ {plans[isSelectedPlan as keyof typeof plans]?.price.toFixed(2)}
+            {isSelectedPlan} - R$ {plans[isSelectedPlan as keyof typeof plans]?.toFixed(2)}
           </span>
         </div>
       )}
@@ -633,7 +629,7 @@ export default function Order() {
           {isCouponApplied && (
             <div className="text-sm line-through text-gray-500 mb-1 flex items-center">
               <XCircle className="h-3 w-3 mr-1 text-gray-500" />
-              R${plans[isSelectedPlan as keyof typeof plans]?.price.toFixed(2)}
+              R${(plans[isSelectedPlan as keyof typeof plans]).toFixed(2)}
             </div>
           )}
           

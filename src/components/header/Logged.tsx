@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { User } from 'next-auth';
-import { LayoutDashboard, Users, Shield, LogOut, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Shield, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 
@@ -10,12 +10,12 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuPortal,
     DropdownMenuSeparator,
     DropdownMenuSub,
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
+    DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 
 interface LoggedProps {
@@ -54,6 +54,7 @@ export default function LoggedComponent({ user }: LoggedProps) {
                             <div className="space-y-1 px-1">
                                 <DropdownMenuItem 
                                     onClick={() => {
+                                        // Redirecionar para o app
                                         window.location.href = 'https://app.darkcloud.store/';
                                     }}
                                     className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-xl hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-indigo-500/10 focus:bg-white/5 transition-all group"
@@ -80,31 +81,20 @@ export default function LoggedComponent({ user }: LoggedProps) {
                                 {isAdmin && (
                                     <DropdownMenuSub>
                                         <DropdownMenuSubTrigger className="mb-0.5 cursor-pointer text-blue-500 focus:bg-blue-500/10 data-[state=open]:bg-blue-500/10">
-                                            <Shield className="mr-2 h-4 w-4" />
+                                            <Shield />
                                             Administração
                                         </DropdownMenuSubTrigger>
                                         <DropdownMenuPortal>
                                             <DropdownMenuSubContent className="p-1 space-y-1 bg-[rgba(7,8,12,255)]">
                                                 {/* Dashboard Admin */}
                                                 <DropdownMenuItem 
-                                                    className="cursor-pointer flex items-center" 
+                                                    className="cursor-pointer" 
                                                     onClick={() => {
                                                         window.location.href = '/admin';
                                                     }}
                                                 >
-                                                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                    <LayoutDashboard />
                                                     Painel de Administração
-                                                </DropdownMenuItem>
-
-                                                {/* AI Config */}
-                                                <DropdownMenuItem 
-                                                    className="cursor-pointer flex items-center" 
-                                                    onClick={() => {
-                                                        window.location.href = '/admin/ai-config';
-                                                    }}
-                                                >
-                                                    <Settings className="mr-2 h-4 w-4" />
-                                                    Configurar IA
                                                 </DropdownMenuItem>
                                             </DropdownMenuSubContent>
                                         </DropdownMenuPortal>

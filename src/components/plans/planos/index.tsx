@@ -12,7 +12,6 @@ interface PlanosProps {
 interface Plan {
   name: string;
   price: string;
-  originalPrice?: string;
   period: string;
   description: string;
   specs: string[];
@@ -29,7 +28,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
       period: "/1h",
       description: "Uma máquina para testar e desfrutar dos melhores jogos da atualidade.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -42,11 +41,11 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     },
     {
       name: "Omega",
-      price: "R$69,97",
+      price: "R$49,97",
       period: "/1 mês",
       description: "Uma máquina para jogar moderadamente durante uma semana inteira.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -59,11 +58,11 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     },
     {
       name: "Beta",
-      price: "R$49,97",
+      price: "R$39,97",
       period: "/1 semana",
       description: "Uma máquina que cabe no seu bolso para jogar moderadamente o mês inteiro.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -76,16 +75,15 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     },
     {
       name: "Prime",
-      price: "R$89,97",
-      originalPrice: "R$129,97",
+      price: "R$79,97",
       period: "/semana",
       description: "Uma semana de máquina para jogar sem limites a qualquer momento.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
@@ -95,33 +93,31 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
     {
       name: "Elite",
       price: "R$149,97",
-      originalPrice: "R$214,97",
       period: "/mês",
       description: "Um mês de máquina para jogar sem limites a qualquer momento e de onde estiver.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
-      recommended: true,
+      recommended: false,
       url: "/order/basic?plan=elite"
     },
     {
       name: "Plus",
-      price: "R$109,97",
-      originalPrice: "R$157,97",
+      price: "R$99,97",
       period: "/15 dias",
       description: "15 dias de máquina para você trabalhar e jogar ao mesmo tempo sem perder tempo.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
@@ -169,20 +165,20 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
               relative rounded-2xl overflow-hidden transition-all duration-500
               bg-gradient-to-br from-gray-900/30 to-black/70 
               backdrop-blur-md border 
-              ${plan.name === 'Omega' ? 'border-yellow-500/80' : 'border-gray-700/30'}
-              hover:shadow-lg ${plan.name === 'Omega' ? 'hover:shadow-yellow-500/20 hover:border-yellow-500/80' : 'hover:shadow-blue-500/10 hover:border-blue-500/20'}
+              ${plan.name === 'Omega' || plan.name === 'Elite' ? 'border-yellow-500/80' : 'border-gray-700/30'}
+              hover:shadow-lg ${plan.name === 'Omega' || plan.name === 'Elite' ? 'hover:shadow-yellow-500/20 hover:border-yellow-500/80' : 'hover:shadow-blue-500/10 hover:border-blue-500/20'}
             `}
             whileHover={{ y: -5 }}
           >
             <div className="absolute top-0 left-0 p-3">
-              <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${plan.name === 'Omega' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}` }>
-                <span className={`text-xs font-medium ${plan.name === 'Omega' ? 'text-yellow-300' : 'text-blue-300'}`}>{plan.name}</span>
+              <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${(plan.name === 'Omega' || plan.name === 'Elite') ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-black/40 border border-gray-700/50'}` }>
+                <span className={`text-xs font-medium ${(plan.name === 'Omega' || plan.name === 'Elite') ? 'text-yellow-300' : 'text-gray-300'}`}>{plan.name}</span>
               </div>
             </div>
             
             <div className="relative p-8 pt-12">
               {/* Brilho no canto superior quando hover */}
-              {hoveredIndex === index && plan.name === 'Omega' && (
+              {hoveredIndex === index && (plan.name === 'Omega' || plan.name === 'Elite') && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -199,7 +195,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
                 className="mb-4 relative"
               >
                 <h3 className="text-3xl font-bold text-white mb-1">
-                  <span className={`${plan.name === 'Omega' ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700' : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white'}`}>{plan.price}</span>
+                  <span className={`${(plan.name === 'Omega' || plan.name === 'Elite') ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700' : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white'}`}>{plan.price}</span>
                   <span className="text-sm text-gray-400 font-normal ml-1">{plan.period}</span>
                 </h3>
                 <p className="text-gray-300 text-sm">{plan.description}</p>
@@ -227,7 +223,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
                 <a
                   href={plan.url}
                   className={`block w-full text-center py-3 rounded-lg font-semibold transition-colors mt-8
-                    ${plan.name === 'Omega' ? 'bg-yellow-500 hover:bg-yellow-400 text-gray-900 border border-yellow-600 shadow-yellow-300/30' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
+                    ${(plan.name === 'Omega' || plan.name === 'Elite') ? 'bg-yellow-500 hover:bg-yellow-400 text-gray-900 border border-yellow-600 shadow-yellow-300/30' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
                 >
                   Comprar Agora
                 </a>
@@ -264,33 +260,20 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
             onMouseLeave={() => onHoverChange(null)}
             className={`
               relative rounded-2xl overflow-hidden transition-all duration-500
-              bg-gradient-to-br from-gray-900/30 to-black/70 
-              backdrop-blur-md border 
-              ${plan.name === 'Elite' ? 'border-yellow-500/80' : 'border-gray-700/30'}
-              hover:shadow-lg ${plan.name === 'Elite' ? 'hover:shadow-yellow-500/20 hover:border-yellow-500/80' : 'hover:shadow-blue-500/10 hover:border-blue-500/20'}
+              bg-gradient-to-br ${plan.name === 'Elite' ? 'from-gray-900/30 to-black/70' : 'from-gray-900/30 to-black/70'}
+              backdrop-blur-md border ${plan.name === 'Elite' ? 'border-yellow-500/80' : 'border-gray-700/30'}
+              ${plan.name === 'Elite' 
+                ? 'hover:shadow-lg hover:shadow-yellow-500/20 hover:border-yellow-500/80' 
+                : 'hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-500/20'
+              }
             `}
             whileHover={{ y: -5 }}
           >
             <div className="absolute top-0 left-0 p-3">
-              <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${(plan.name === 'Elite' || plan.name === 'Omega') ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}` }>
-                <span className={`text-xs font-medium ${(plan.name === 'Elite' || plan.name === 'Omega') ? 'text-yellow-300' : 'text-blue-300'}`}>{plan.name}</span>
+              <div className={`inline-flex items-center justify-center backdrop-blur-sm rounded-full px-3 py-1 ${plan.name === 'Elite' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-black/40 border border-gray-700/50'}`}>
+                <span className={`text-xs font-medium ${plan.name === 'Elite' ? 'text-yellow-300' : 'text-gray-300'}`}>{plan.name}</span>
               </div>
             </div>
-
-            {plan.originalPrice && (
-              <div className="absolute top-0 right-0 p-3">
-                <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${(plan.name === 'Elite' || plan.name === 'Omega') ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}`}>
-                  <motion.span 
-                    initial={{ opacity: 0.7 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-                    className={`text-xs font-medium ${(plan.name === 'Elite' || plan.name === 'Omega') ? 'text-yellow-300' : 'text-blue-300'}`}
-                  >
-                    30% OFF
-                  </motion.span>
-                </div>
-              </div>
-            )}
             
             <div className="relative p-8 pt-12">
               {/* Brilho no canto superior quando hover */}
@@ -313,11 +296,6 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
                 <h3 className="text-3xl font-bold text-white mb-1">
                   <span className={`${plan.name === 'Elite' ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700' : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white'}`}>{plan.price}</span>
                   <span className="text-sm text-gray-400 font-normal ml-1">{plan.period}</span>
-                  {plan.originalPrice && (
-                    <span className="block text-base text-gray-500 line-through mt-1">
-                      De: {plan.originalPrice}
-                    </span>
-                  )}
                 </h3>
                 <p className="text-gray-300 text-sm">{plan.description}</p>
               </motion.div>
@@ -333,7 +311,7 @@ const Planos = ({ onHoverChange, hoveredIndex }: PlanosProps) => {
                     viewport={{ once: true }}
                     className="flex items-center gap-2"
                   >
-                    <CheckCircle className="h-4 w-4 text-gray-400 shrink-0" />
+                    <CheckCircle className={`h-4 w-4 ${plan.name === 'Elite' ? 'text-yellow-400' : 'text-gray-400'} shrink-0`} />
                     <span className="text-gray-300 text-sm">{spec}</span>
                   </motion.li>
                 ))}

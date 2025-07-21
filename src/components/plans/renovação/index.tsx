@@ -19,7 +19,7 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       period: "/hora",
       description: "Uma máquina para testar e desfrutar dos melhores jogos da atualidade.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -37,7 +37,7 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       period: "/mês",
       description: "Uma máquina para jogar moderadamente durante uma semana inteira.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -55,7 +55,7 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       period: "/semana",
       description: "Uma máquina que cabe no seu bolso para jogar moderadamente o mês inteiro.",
       specs: [
-        "JOGOS PRÉ-INSTALADOS",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO LIMITADA",
         "NÃO SALVA OS ARQUIVOS",
@@ -69,15 +69,15 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
     {
       name: "Prime",
       tier: "premium",
-      price: "R$89,97",
+      price: "R$79,97",
       period: "/semana",
       description: "Uma semana de máquina para jogar sem limites a qualquer momento.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
@@ -91,11 +91,11 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       period: "/mês",
       description: "Um mês de máquina para jogar sem limites a qualquer momento e de onde estiver.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
@@ -105,15 +105,15 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
     {
       name: "Plus",
       tier: "premium",
-      price: "R$109,97",
+      price: "R$99,97",
       period: "/15 dias",
       description: "15 dias de máquina para você trabalhar e jogar ao mesmo tempo sem perder tempo.",
       specs: [
-        "448 JOGOS DA STEAM",
+        "450 JOGOS STEAM",
         "SERVIDOR BR",
         "SESSÃO ILIMITADA",
         "COM SALVAMENTO DE ARQUIVOS",
-        "CONTEM SPOT",
+        "SPOT ALEATORIO",
         "SUJEITO A FILA",
         "4/16 NÚCLEOS"
       ],
@@ -173,8 +173,8 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
             whileHover={{ y: -5 }}
           >
             <div className="absolute top-0 left-0 p-3">
-              <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${plan.name === 'Elite' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}`}>
-                <span className={`text-xs font-medium ${plan.name === 'Elite' ? 'text-yellow-300' : 'text-blue-300'}`}>Renovação {plan.name}</span>
+              <div className="inline-flex items-center justify-center bg-black/40 backdrop-blur-sm border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="text-xs font-medium text-gray-300">Renovação {plan.name}</span>
               </div>
             </div>
             
@@ -318,20 +318,11 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
               </motion.div>
             )}
 
-            {plan.tier === 'premium' && (
-              <div className="absolute top-0 right-0 p-3">
-                <div className={`inline-flex items-center justify-center rounded-full px-3 py-1 backdrop-blur-sm ${plan.name === 'Elite' ? 'bg-yellow-400/20 border border-yellow-500/40' : 'bg-blue-500/20 border border-blue-500/40'}`}>
-                  <motion.span 
-                    initial={{ opacity: 0.7 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
-                    className={`text-xs font-medium ${plan.name === 'Elite' ? 'text-yellow-300' : 'text-blue-300'}`}
-                  >
-                    30% OFF
-                  </motion.span>
-                </div>
+            <div className="absolute top-0 left-0 p-3">
+              <div className="inline-flex items-center justify-center bg-blue-900/40 backdrop-blur-sm border border-blue-500/30 rounded-full px-3 py-1">
+                <span className="text-xs font-medium text-blue-100">Renovação {plan.name}</span>
               </div>
-            )}
+            </div>
             
             <div className="relative p-8 pt-12">
               {/* Brilho no canto superior quando hover */}

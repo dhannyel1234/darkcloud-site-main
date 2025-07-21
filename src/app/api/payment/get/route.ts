@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
+import { getServerSession } from 'next-auth/next';
 import paymentController from '@/functions/database/controllers/PaymentController';
+import EfiPay from 'sdk-node-apis-efi';
 import { UserPlanController } from '@/functions/database/controllers/UserPlanController';
-import { EfiPay } from 'sdk-typescript-apis-efi';
-import * as fs from 'fs';
-import * as path from 'path';
+import path from 'path';
 
-// Configuração do EFI
-const certPath = path.join(process.cwd(), 'certs', 'homologacao-405529-darkcloud.p12');
+// Configuração do EfiPay
+const certPath = path.join(process.cwd(), process.env.EFI_CERT_PATH!);
+console.log('🔧 Configuração EFI:', {
+  certPath,
+  hasClientId: !!process.env.EFI_CLIENT_ID,
+  hasClientSecret: !!process.env.EFI_CLIENT_SECRET,
+  sandbox: false
+});
 
 const efipay = new EfiPay({
   client_id: process.env.EFI_CLIENT_ID!,
@@ -83,30 +87,51 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Verifica se o pagamento já foi processado
-    if (dbPayment.checked_all) {
-      console.log("✅ Pagamento já foi processado anteriormente");
-      return NextResponse.json({
-        ...dbPayment,
-        pix: { status: 'CONCLUIDA' },
-        message: 'Pagamento já foi processado'
+    // Verifica se o payment_id (txid) é válido
+    const txid = dbPayment.payment_id;
+    console.log("🔑 Verificando TXID:", {
+      txid,
+      length: txid?.length,
+      isValid: !!(txid && typeof txid === "string" && txid.length >= 26 && txid.length <= 35)
+    });
+
+    if (!txid || typeof txid !== "string" || txid.length < 26 || txid.length > 35) {
+      console.error("❌ TXID inválido:", {
+        txid,
+        tipo: typeof txid,
+        tamanho: txid?.length
       });
+      return NextResponse.json(
+        {
+          message: "TXID inválido. Ele deve ter entre 26 e 35 caracteres alfanuméricos.",
+          txid,
+          support: "@known.js",
+        },
+        { status: 400 }
+      );
     }
 
-    // Verifica status do pagamento na EFI
-    console.log("🔍 Verificando status na EFI:", dbPayment.payment_id);
-    const pixStatus = await efipay.pixDetailCharge({
-      txid: dbPayment.payment_id
-    });
-
-    console.log("📡 Status da EFI:", {
+    // Consulta o status da cobrança Pix
+    console.log("💳 Consultando status EFI para TXID:", txid);
+    const pixStatus = await efipay.pixDetailCharge({ txid });
+    console.log('💳 Resposta EFI:', {
       status: pixStatus.status,
-      pago: pixStatus.pix?.some((p: any) => p.valor > 0)
+      txid: pixStatus.txid,
+      valor: pixStatus.valor,
+      horario: pixStatus.horario,
+      pixStatus: JSON.stringify(pixStatus, null, 2)
     });
 
-    // Verifica se foi pago
-    const isPaid = pixStatus.status === 'CONCLUIDA' || 
-                   (pixStatus.pix && pixStatus.pix.some((p: any) => p.valor > 0));
+    // Ativação automática do plano se o pagamento foi concluído
+    const successStatus = ['CONCLUIDA', 'REALIZADA', 'CONFIRMADA', 'COMPLETED', 'CONFIRMED'];
+    const isPaid = successStatus.includes(pixStatus.status?.toUpperCase());
+    console.log('💰 Verificação de pagamento:', {
+      status: pixStatus.status,
+      isPaid,
+      hasUserId: !!dbPayment.userId,
+      hasPlan: !!dbPayment.plan,
+      hasPrice: !!dbPayment.price
+    });
 
     if (isPaid && dbPayment.userId && dbPayment.plan && dbPayment.price) {
       try {
@@ -130,9 +155,6 @@ export async function GET(req: NextRequest) {
           });
         }
 
-        // Verificar se é um plano premium
-        const isPremiumPlan = ['elite', 'plus', 'omega'].includes(dbPayment.plan.toLowerCase());
-        
         // Calcular data de expiração baseado no tipo do plano
         let expiresAt = null;
         const now = new Date();
@@ -152,69 +174,77 @@ export async function GET(req: NextRequest) {
           // Definir para 23:59:59 do último dia
           expiresAt.setHours(23, 59, 59, 999);
         }
-        // Para planos premium (ELITE, PLUS, OMEGA), não definir data de expiração
 
-        // URL de redirecionamento para planos premium
-        const redirectUrl = isPremiumPlan ? 'https://app.darkcloud.store' : null;
-
-        console.log('🎯 Criando plano:', {
+        const planData = {
           userId: dbPayment.userId,
-          userName: dbPayment.userName,
-          planType: dbPayment.plan,
-          expiresAt,
-          isPremiumPlan,
-          redirectUrl
-        });
-
-        // Criar plano do usuário
-        await userPlanController.create({
-          userId: dbPayment.userId,
-          userName: dbPayment.userName,
-          planType: dbPayment.plan,
+          userName: dbPayment.userName || session.user?.name || 'Usuário',
+          planType: dbPayment.plan.toLowerCase(), // Garantir lowercase
           expiresAt,
           chargeId: dbPayment.payment_id,
-          paymentValue: dbPayment.price,
-          redirectUrl
+          paymentValue: dbPayment.price
+        };
+        console.log('📝 Tentando criar plano com dados:', {
+          ...planData,
+          expiresAtFormatted: expiresAt ? expiresAt.toISOString() : null
         });
 
-        // Marcar pagamento como processado
-        await paymentController.update(customId, { checked_all: true });
+        const result = await userPlanController.create(planData);
+        console.log('✅ Plano criado com sucesso:', {
+          id: result._id,
+          userId: result.userId,
+          planType: result.planType,
+          expiresAt: result.expiresAt
+        });
+        
+        // Atualizar status do pagamento
+        console.log('📝 Atualizando status do pagamento para completed');
+        await paymentController.update(customId, { 
+          status: 'completed',
+          userName: session.user?.name || dbPayment.userName || 'Usuário'
+        });
 
-        console.log('✅ Plano criado com sucesso!');
-
+        const response = {
+          ...dbPayment,
+          pix: pixStatus,
+          plan: result,
+          message: 'Pagamento confirmado e plano ativado com sucesso'
+        };
+        console.log('✅ Resposta final sucesso:', response);
+        return NextResponse.json(response);
+      } catch (err) {
+        console.error('❌ Erro ao ativar plano:', {
+          error: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined
+        });
         return NextResponse.json({
           ...dbPayment,
           pix: pixStatus,
-          isPremiumPlan,
-          redirectUrl,
-          message: 'Pagamento confirmado e plano ativado'
-        });
-
-      } catch (error) {
-        console.error('❌ Erro ao criar plano:', error);
-        return NextResponse.json({
-          ...dbPayment,
-          pix: pixStatus,
-          error: 'Erro ao criar plano',
-          details: error instanceof Error ? error.message : 'Erro desconhecido'
-        });
+          error: 'Erro ao ativar plano',
+          details: err instanceof Error ? err.message : String(err)
+        }, { status: 500 });
       }
     }
 
-    // Retorna status atual do pagamento
-    return NextResponse.json({
+    // Retorna dados combinados
+    const response = {
       ...dbPayment,
       pix: pixStatus,
-      message: isPaid ? 'Pagamento confirmado' : 'Aguardando pagamento'
+    };
+    console.log('✅ Resposta final (sem criação de plano):', response);
+    return NextResponse.json(response, { status: 200 });
+
+  } catch (err: any) {
+    console.error("💥 Erro ao consultar pagamento Pix:", {
+      error: err instanceof Error ? err.message : String(err),
+      response: err?.response?.data,
+      stack: err instanceof Error ? err.stack : undefined
     });
 
-  } catch (error) {
-    console.error('❌ Erro na verificação de pagamento:', error);
     return NextResponse.json(
       {
-        error: "Erro interno do servidor",
-        details: error instanceof Error ? error.message : 'Erro desconhecido',
-        support: "@known.js",
+        message: "Erro ao consultar pagamento Pix",
+        error: err?.response?.data || String(err),
+        support: '@known.js',
       },
       { status: 500 }
     );

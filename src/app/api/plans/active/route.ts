@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
-import { UserPlanController } from '@/functions/database/controllers/UserPlanController';
-import Database from '@/functions/database/database';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
+import database from "@/functions/database/database";
+import { UserPlanController } from "@/functions/database/controllers/UserPlanController";
 
 export async function GET() {
   try {
@@ -19,7 +19,7 @@ export async function GET() {
     }
 
     console.log("[GET /api/plans/active] Conectando ao banco de dados...");
-    await Database.connect();
+    await database.connect();
     console.log("[GET /api/plans/active] Conexão estabelecida");
 
     const userPlanController = UserPlanController.getInstance();
@@ -53,11 +53,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar tipo de plano
-    if (!['alfa', 'beta', 'omega', 'elite', 'plus'].includes(planType.toLowerCase())) {
+    if (!['alfa', 'beta', 'omega'].includes(planType.toLowerCase())) {
       return NextResponse.json({ error: "Tipo de plano inválido" }, { status: 400 });
     }
 
-    await Database.connect();
+    await database.connect();
     const userPlanController = UserPlanController.getInstance();
 
     // Verificar se o usuário já tem um plano ativo do mesmo tipo
@@ -70,16 +70,11 @@ export async function POST(request: NextRequest) {
     const startDate = new Date();
     let endDate: Date;
 
-    // Para planos premium, não definir data de expiração
-    const isPremiumPlan = ['elite', 'plus', 'omega'].includes(planType.toLowerCase());
-    
-    if (isPremiumPlan) {
-      endDate = null; // Planos premium não expiram
-    } else if (planType.toLowerCase() === 'alfa') {
+    if (planType.toLowerCase() === 'alfa') {
       // Para Alfa, duration já está em horas
       endDate = new Date(startDate.getTime() + (duration * 60 * 60 * 1000));
     } else {
-      // Para Beta, duration já está em dias
+      // Para Beta e Omega, duration já está em dias
       // Garantir que a duração seja um número inteiro
       const durationInDays = Math.floor(duration);
       // Calcular milissegundos para os dias
@@ -92,9 +87,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // URL de redirecionamento para planos premium
-    const redirectUrl = isPremiumPlan ? 'https://app.darkcloud.store' : null;
-
     // Log para debug
     console.log('DEBUG - Criação de plano:', {
       userId,
@@ -102,13 +94,11 @@ export async function POST(request: NextRequest) {
       planType,
       duration,
       startDate: startDate.toISOString(),
-      endDate: endDate?.toISOString() || 'null',
+      endDate: endDate.toISOString(),
       durationInMillis: planType.toLowerCase() === 'alfa' 
         ? duration * 60 * 60 * 1000 // Horas para milissegundos
         : Math.floor(duration) * 24 * 60 * 60 * 1000, // Dias para milissegundos
-      endOfDay: planType.toLowerCase() === 'omega',
-      isPremiumPlan,
-      redirectUrl
+      endOfDay: planType.toLowerCase() === 'omega'
     });
 
     // Criar novo plano
@@ -118,8 +108,7 @@ export async function POST(request: NextRequest) {
       planType,
       expiresAt: endDate,
       chargeId: 'manual-add',
-      paymentValue: 0,
-      redirectUrl
+      paymentValue: 0
     });
 
     return NextResponse.json({ success: true });

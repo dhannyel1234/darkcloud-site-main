@@ -14,17 +14,14 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { planType, value, name, customId, email, couponApplied, discountPercent } = body;
+        const { planType, value } = body;
 
         if (!planType || !value) {
             return NextResponse.json({ error: 'Plano ou valor não especificado' }, { status: 400 });
         }
 
-        // Verificar se é um plano premium
-        const isPremiumPlan = ['elite', 'plus', 'omega'].includes(planType.toLowerCase());
-        
         // Gerar ID único para o pagamento incluindo o tipo do plano
-        const finalCustomId = customId || `${planType.toLowerCase()}_${randomUUID()}`;
+        const custom_id = `${planType.toLowerCase()}_${randomUUID()}`;
 
         // Cria cobrança Pix via EFI
         const descricao = `Assinatura DarkCloud - Plano ${planType}`;
@@ -39,14 +36,11 @@ export async function POST(request: NextRequest) {
         const expires_at = new Date();
         expires_at.setHours(expires_at.getHours() + 1);
 
-        // URL de redirecionamento para planos premium
-        const redirectUrl = isPremiumPlan ? 'https://app.darkcloud.store' : null;
-
         // Salvar pagamento no banco de dados
         const payment = await paymentController.create({
-            custom_id: finalCustomId,
+            custom_id,
             payment_id: cobranca.txid,
-            email: email || session.user.email || '',
+            email: session.user.email || '',
             plan: planType,
             checked_all: false,
             machine_created: false,
@@ -57,39 +51,31 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
             userName: session.user.name,
             status: 'pending',
-            expires_at,
-            coupon_applied: couponApplied || null,
-            discount_percent: discountPercent || 0,
-            redirectUrl
+            expires_at
         });
 
-        console.log('✅ Pagamento criado:', {
-            customId: finalCustomId,
-            planType,
-            isPremiumPlan,
-            redirectUrl,
-            value
-        });
-
-        return NextResponse.json({
-            success: true,
-            customId: finalCustomId,
-            cobranca: {
-                txid: cobranca.txid,
-                brCode: cobranca.brCode,
-                qrCodeImage: cobranca.qrCodeImage,
-                valor: value,
-                status: 'pending'
-            },
-            isPremiumPlan,
-            redirectUrl
-        });
-
+        if (payment) {
+            return NextResponse.json({
+                success: true,
+                cobranca: {
+                    ...cobranca,
+                    status: 'Aguardando pagamento',
+                    custom_id,
+                    userId: session.user.id,
+                    userName: session.user.name
+                }
+            });
+        } else {
+            return NextResponse.json({ error: 'Erro ao salvar pagamento' }, { status: 400 });
+        }
     } catch (error) {
-        console.error('❌ Erro ao criar pagamento:', error);
-        return NextResponse.json({ 
-            error: 'Erro interno do servidor',
-            details: error instanceof Error ? error.message : 'Erro desconhecido'
-        }, { status: 500 });
+        console.error('❌ Erro ao criar cobrança:', error);
+        return NextResponse.json(
+            { 
+                error: 'Erro ao criar cobrança', 
+                details: error instanceof Error ? error.message : String(error)
+            }, 
+            { status: 500 }
+        );
     }
 }
