@@ -1,9 +1,9 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ActivePlans from "./components/ActivePlans";
-import ExpiredPlans from "./components/ExpiredPlans";
-import CancelledPlans from "./components/CancelledPlans";
+import ActivePlans from "../plans-management/components/ActivePlans";
+import ExpiredPlans from "../plans-management/components/ExpiredPlans";
+import CancelledPlans from "../plans-management/components/CancelledPlans";
 
 export default function PlansManagementSave() {
   return (
