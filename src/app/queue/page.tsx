@@ -85,6 +85,14 @@ const dicas = [
     "É totalmente proibido atualizar os drivers das máquinas virtuais."
 ];
 
+// Função utilitária para exibir o nome correto do plano
+function getPlanDisplayName(planType: string) {
+  if (planType.toLowerCase() === 'omega') return 'ELITE 1';
+  if (planType.toLowerCase() === 'beta') return 'Prime 1';
+  if (planType.toLowerCase() === 'alfa') return 'Alfa';
+  return planType.charAt(0).toUpperCase() + planType.slice(1);
+}
+
 export default function QueuePage() {
     const { toast } = useToast();
     const router = useRouter();
@@ -378,7 +386,7 @@ export default function QueuePage() {
                     <div className="text-[5rem] md:text-[8rem] font-extrabold text-[#7dd3fc] drop-shadow-lg mb-4">
                         {queueStatus.position}
                     </div>
-                    <div className="text-xl text-white mb-2">Plano: <span className="text-[#7dd3fc] font-semibold">{queueStatus.plan.name}</span></div>
+                    <div className="text-xl text-white mb-2">Plano: <span className="text-[#7dd3fc] font-semibold">{getPlanDisplayName(queueStatus.plan.type)}</span></div>
                     <div className="text-lg text-gray-300 mb-8 flex items-center gap-2">Status: <span className="text-blue-400 font-semibold">Aguardando sua vez{'.'.repeat(dots)}</span></div>
                     <button onClick={sairDaFila} className="mt-4 px-8 py-3 rounded-full bg-[#7dd3fc] text-[#0a192f] font-bold text-lg shadow-lg hover:bg-[#60aaff] transition">Sair da fila</button>
                     <p className="mt-8 text-gray-400 text-sm text-center max-w-md transition-all duration-500 min-h-[48px]">{dicas[dicaIndex]}</p>
@@ -418,7 +426,7 @@ export default function QueuePage() {
                         </div>
                         <div className="flex items-center gap-2 text-blue-300 text-2xl font-extrabold mb-1 uppercase tracking-widest drop-shadow">
                             <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path fill="#60a5fa" d="M12 2l2.09 6.26L20 9.27l-5 3.64L16.18 21 12 17.27 7.82 21 9 12.91l-5-3.64 5.91-.01z"/></svg>
-                            {queueStatus.plan.name}
+                            {getPlanDisplayName(queueStatus.plan.type)}
                         </div>
                         <div className="w-full flex flex-col items-center mt-1 mb-1">
                             <span className="flex items-center gap-2 text-blue-200 text-sm font-semibold">
@@ -723,7 +731,7 @@ export default function QueuePage() {
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-gray-300">Plano</span>
                                                     <span className="text-blue-400 font-medium">
-                                                        {queueStatus.plan.name}
+                                                        {getPlanDisplayName(queueStatus.plan.type)}
                                                     </span>
                                                 </div>
                                             </div>

@@ -71,9 +71,19 @@ export async function GET(request: NextRequest) {
             endTime = new Date(new Date().getTime() + timeLeft);
         }
 
+        // Calcular posição dinâmica na fila
+        let dynamicPosition = userInQueue.position;
+        if (userInQueue.status === 'waiting') {
+            dynamicPosition = await Queue.countDocuments({
+                status: 'waiting',
+                'plan.type': userInQueue.plan.type,
+                position: { $lt: userInQueue.position }
+            }) + 1;
+        }
+
         return NextResponse.json({ 
             success: true, 
-            position: userInQueue.position,
+            position: dynamicPosition,
             status: userInQueue.status,
             plan: {
                 ...userInQueue.plan,

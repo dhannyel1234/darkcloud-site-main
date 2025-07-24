@@ -39,8 +39,8 @@ interface QueueStats {
 
 const queueNames: { key: 'alfa' | 'beta' | 'omega'; label: string; color: string }[] = [
   { key: 'alfa', label: 'Fila Alfa', color: 'blue' },
-  { key: 'beta', label: 'Fila Beta', color: 'green' },
-  { key: 'omega', label: 'Fila Omega', color: 'yellow' },
+  { key: 'beta', label: 'Prime 1', color: 'green' },
+  { key: 'omega', label: 'ELITE 1', color: 'yellow' },
 ];
 
 export default function QueueTab() {

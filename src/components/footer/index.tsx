@@ -145,15 +145,23 @@ export default function Footer() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        {["Início", "Planos", "Suporte", "FAQ", "Termos de Uso"].map((item, index) => (
+                        {[
+                            { label: "Início", href: "#início" },
+                            { label: "Planos", href: "#planos" },
+                            { label: "Suporte", href: "#suporte" },
+                            { label: "FAQ", href: "#faq" },
+                            { label: "Termos de Uso", href: "/terms" },
+                            { label: "Política de Privacidade", href: "/privacy" }
+                        ].map((item, index) => (
                             <motion.a
                                 key={index}
-                                href={`#${item.toLowerCase()}`}
+                                href={item.href}
                                 className="text-gray-200 hover:text-blue-400 transition-colors duration-300 text-sm"
                                 whileHover={{ y: -2 }}
                                 transition={{ type: "spring", stiffness: 300 }}
+                                target={item.href.startsWith('/') ? undefined : '_self'}
                             >
-                                {item}
+                                {item.label}
                             </motion.a>
                         ))}
                     </motion.div>

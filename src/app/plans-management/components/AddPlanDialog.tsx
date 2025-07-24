@@ -231,8 +231,8 @@ export default function AddPlanDialog({ onSuccess }: AddPlanDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="alfa">Alfa</SelectItem>
-                <SelectItem value="omega">Omega</SelectItem>
-                <SelectItem value="beta">Beta</SelectItem>
+                <SelectItem value="omega">ELITE 1</SelectItem>
+                <SelectItem value="beta">Prime 1</SelectItem>
               </SelectContent>
             </Select>
           </div>

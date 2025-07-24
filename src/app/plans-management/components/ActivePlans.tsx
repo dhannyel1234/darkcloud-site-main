@@ -57,6 +57,8 @@ export default function ActivePlans() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [clientTime, setClientTime] = useState<string | null>(null);
+  // Adiciona estado para termo de pesquisa
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (lastUpdate) {
@@ -125,6 +127,14 @@ export default function ActivePlans() {
     }
   };
 
+  // Filtra os planos conforme o termo de pesquisa
+  const filteredPlans = plans.filter((plan) => {
+    const userName = plan.userName?.toLowerCase() || "";
+    const userId = plan.userId?.toString() || "";
+    const term = searchTerm.toLowerCase();
+    return userName.includes(term) || userId.includes(term);
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -151,6 +161,16 @@ export default function ActivePlans() {
               {loading ? "Atualizando..." : "Atualizar Lista"}
             </Button>
           </div>
+        </div>
+        {/* Campo de pesquisa */}
+        <div className="mt-4">
+          <input
+            type="text"
+            placeholder="Pesquisar por usuário ou ID do Discord..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 rounded bg-background border border-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
         </div>
       </CardHeader>
       <CardContent>
@@ -187,14 +207,14 @@ export default function ActivePlans() {
                     Carregando planos...
                   </TableCell>
                 </TableRow>
-              ) : plans.length === 0 ? (
+              ) : filteredPlans.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-4">
                     Nenhum plano ativo encontrado
                   </TableCell>
                 </TableRow>
               ) : (
-                plans.map((plan) => (
+                filteredPlans.map((plan) => (
                   <TableRow key={plan.id} className="hover:bg-secondary/10">
                     <TableCell className="font-medium">
                       {plan.userName.replace('Discord ID: ', '')}
@@ -206,7 +226,7 @@ export default function ActivePlans() {
                         plan.planType === "omega" ? "secondary" :
                         "outline"
                       }>
-                        {plan.planType.toUpperCase()}
+                        {plan.planType === 'omega' ? 'ELITE 1' : plan.planType === 'beta' ? 'Prime 1' : plan.planType.charAt(0).toUpperCase() + plan.planType.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>

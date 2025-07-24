@@ -77,8 +77,8 @@ export default function ActiveUsers({ alphaUsers, betaUsers, omegaUsers, onRefre
                 </Button>
             </div>
             {renderQueueSection("Fila Alfa", alphaUsers, "text-blue-400")}
-            {renderQueueSection("Fila Beta", betaUsers, "text-green-400")}
-            {renderQueueSection("Fila Omega", omegaUsers, "text-yellow-400")}
+            {renderQueueSection("Prime 1", betaUsers, "text-green-400")}
+            {renderQueueSection("ELITE 1", omegaUsers, "text-yellow-400")}
         </div>
     );
 } 
