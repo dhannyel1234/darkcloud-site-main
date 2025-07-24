@@ -28,7 +28,9 @@ interface LoggedProps {
 
 export default function LoggedComponent({ user }: LoggedProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const isAdmin = user?.email === 'thecripz8@gmail.com';
+    // Remover verificação fixa por e-mail
+    // const isAdmin = user?.email === 'thecripz8@gmail.com';
+    const [isAdmin, setIsAdmin] = useState(false);
     const [shouldOpenDialog, setShouldOpenDialog] = useState(false);
     const [adminId, setAdminId] = useState('');
     const [adminName, setAdminName] = useState('');
@@ -77,6 +79,13 @@ export default function LoggedComponent({ user }: LoggedProps) {
         }
         setLoadingAdmins(false);
     };
+
+    useEffect(() => {
+        if (user?.id) {
+            fetch(`/api/admin/get?user_id=${user.id}`)
+                .then(res => setIsAdmin(res.ok));
+        }
+    }, [user]);
 
     useEffect(() => {
         if (showAdminsDialog) fetchAdmins();
