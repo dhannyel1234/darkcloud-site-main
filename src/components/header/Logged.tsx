@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from 'next-auth';
 import { LayoutDashboard, Users, Shield, LogOut } from 'lucide-react';
 import Image from 'next/image';
@@ -17,6 +17,10 @@ import {
     DropdownMenuTrigger,
     DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface LoggedProps {
     user: User;
@@ -25,6 +29,58 @@ interface LoggedProps {
 export default function LoggedComponent({ user }: LoggedProps) {
     const [isLoading, setIsLoading] = useState(false);
     const isAdmin = user?.email === 'thecripz8@gmail.com';
+    const [shouldOpenDialog, setShouldOpenDialog] = useState(false);
+    const [adminId, setAdminId] = useState('');
+    const [adminName, setAdminName] = useState('');
+    const { toast } = useToast();
+    const [showAdminsDialog, setShowAdminsDialog] = useState(false);
+    const [admins, setAdmins] = useState<{user_id: string, user_name: string}[]>([]);
+    const [loadingAdmins, setLoadingAdmins] = useState(false);
+
+    const handleAddAdmin = async () => {
+        if (!adminId || !adminName) {
+            toast({
+                title: 'Campos obrigatórios',
+                description: 'Preencha o nome e o ID do admin.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        try {
+            const res = await fetch('/api/admin/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: adminId, user_name: adminName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast({ title: 'Sucesso', description: 'Admin adicionado com sucesso!' });
+                setShouldOpenDialog(false);
+                setAdminId('');
+                setAdminName('');
+            } else {
+                toast({ title: 'Erro', description: data.message || 'Erro ao adicionar admin', variant: 'destructive' });
+            }
+        } catch (err) {
+            toast({ title: 'Erro', description: 'Erro ao adicionar admin', variant: 'destructive' });
+        }
+    };
+
+    const fetchAdmins = async () => {
+        setLoadingAdmins(true);
+        try {
+            const res = await fetch('/api/admin/getAll');
+            const data = await res.json();
+            setAdmins(Array.isArray(data) ? data : []);
+        } catch {
+            setAdmins([]);
+        }
+        setLoadingAdmins(false);
+    };
+
+    useEffect(() => {
+        if (showAdminsDialog) fetchAdmins();
+    }, [showAdminsDialog]);
 
     if (!isLoading) {
         return (
@@ -96,6 +152,32 @@ export default function LoggedComponent({ user }: LoggedProps) {
                                                     <LayoutDashboard />
                                                     Painel de Administração
                                                 </DropdownMenuItem>
+                                                {/* Novo botão: Gerenciar Planos */}
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer"
+                                                    onClick={() => {
+                                                        window.location.href = '/plans-management';
+                                                    }}
+                                                >
+                                                    <Users />
+                                                    Gerenciar Planos
+                                                </DropdownMenuItem>
+                                                {/* Novo botão: Adicionar Admin (abre modal) */}
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer"
+                                                    onClick={() => setShouldOpenDialog(true)}
+                                                >
+                                                    <Shield />
+                                                    Adicionar Admin
+                                                </DropdownMenuItem>
+                                                {/* Novo botão: Ver Admins (abre modal) */}
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer"
+                                                    onClick={() => setShowAdminsDialog(true)}
+                                                >
+                                                    <Users />
+                                                    Ver Admins
+                                                </DropdownMenuItem>
                                             </DropdownMenuSubContent>
                                         </DropdownMenuPortal>
                                     </DropdownMenuSub>
@@ -117,6 +199,49 @@ export default function LoggedComponent({ user }: LoggedProps) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+                {/* Dialog para adicionar admin - FORA do DropdownMenu */}
+                <Dialog open={shouldOpenDialog} onOpenChange={setShouldOpenDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Adicionar novo Admin</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <Input
+                                placeholder="ID do Admin"
+                                value={adminId}
+                                onChange={e => setAdminId(e.target.value)}
+                            />
+                            <Input
+                                placeholder="Nome do Admin"
+                                value={adminName}
+                                onChange={e => setAdminName(e.target.value)}
+                            />
+                            <Button onClick={handleAddAdmin} className="w-full">Adicionar</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+                {/* Dialog para ver admins - FORA do DropdownMenu */}
+                <Dialog open={showAdminsDialog} onOpenChange={setShowAdminsDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Lista de Administradores</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                            {loadingAdmins ? (
+                                <div>Carregando...</div>
+                            ) : admins.length === 0 ? (
+                                <div>Nenhum admin encontrado.</div>
+                            ) : (
+                                admins.map((admin, idx) => (
+                                    <div key={admin.user_id + idx} className="border-b border-muted py-2">
+                                        <div className="font-semibold">{admin.user_name}</div>
+                                        <div className="text-xs text-muted-foreground">ID: {admin.user_id}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </>
         );
     }

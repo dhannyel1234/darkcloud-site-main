@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
         const { planType } = await request.json();
 
-        if (!planType || !['alfa', 'omega', 'beta'].includes(planType.toLowerCase())) {
+        if (!planType || !['alfa', 'omega', 'beta', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
             return NextResponse.json({ error: 'Tipo de plano inválido' }, { status: 400 });
         }
 
@@ -77,11 +77,14 @@ export async function POST(request: NextRequest) {
                 break;
             case 'omega':
             case 'beta':
-                // Para Beta e Omega, usar o tempo até a expiração do plano
+            case 'elite':
+            case 'prime':
+            case 'plus':
+                // Para Beta, Omega, Elite, Prime, Plus usar o tempo até a expiração do plano
                 const now = new Date();
                 const timeUntilExpiration = Math.max(0, userPlan.expiresAt.getTime() - now.getTime());
                 duration = Math.floor(timeUntilExpiration / (60 * 1000)); // Converter para minutos
-                planName = planType === 'omega' ? 'Omega' : 'Beta';
+                planName = planType.charAt(0).toUpperCase() + planType.slice(1).toLowerCase();
                 endTime = userPlan.expiresAt;
                 break;
             default:

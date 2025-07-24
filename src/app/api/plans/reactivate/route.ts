@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       );
     } else if (planType.toLowerCase() !== 'alfa' && (!days || days <= 0)) {
       return NextResponse.json(
-        { error: "Quantidade de dias é obrigatória para planos Beta e Omega" },
+        { error: "Quantidade de dias é obrigatória para planos Beta, Omega, Elite, Prime e Plus" },
         { status: 400 }
       );
     }

@@ -56,6 +56,13 @@ export default function ActivePlans() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [clientTime, setClientTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (lastUpdate) {
+      setClientTime(lastUpdate.toLocaleTimeString());
+    }
+  }, [lastUpdate]);
 
   const fetchActivePlans = async () => {
     try {
@@ -126,9 +133,9 @@ export default function ActivePlans() {
             <CardTitle>Planos Ativos</CardTitle>
             <CardDescription>
               Lista de todos os planos atualmente ativos no sistema
-              {lastUpdate && (
+              {lastUpdate && clientTime && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  Última atualização: {lastUpdate.toLocaleTimeString()}
+                  Última atualização: {clientTime}
                 </div>
               )}
             </CardDescription>

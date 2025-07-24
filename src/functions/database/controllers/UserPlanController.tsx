@@ -6,7 +6,7 @@ interface IUserPlan extends Document {
   _id: Types.ObjectId;
   userId: string;
   userName: string;
-  planType: 'alfa' | 'beta' | 'omega';
+  planType: 'alfa' | 'beta' | 'omega' | 'elite' | 'prime' | 'plus';
   status: 'active' | 'expired' | 'cancelled';
   activatedAt: Date;
   expiresAt: Date;
@@ -33,8 +33,8 @@ export class UserPlanController {
     return UserPlanController.instance;
   }
 
-  private validatePlanType(planType: string): planType is 'alfa' | 'beta' | 'omega' {
-    const validTypes = ['alfa', 'beta', 'omega'];
+  private validatePlanType(planType: string): planType is 'alfa' | 'beta' | 'omega' | 'elite' | 'prime' | 'plus' {
+    const validTypes = ['alfa', 'beta', 'omega', 'elite', 'prime', 'plus'];
     return validTypes.includes(planType.toLowerCase());
   }
 
@@ -65,7 +65,7 @@ export class UserPlanController {
     }
 
     // Verificar se o tipo do plano é válido
-    if (!['alfa', 'beta', 'omega'].includes(planType.toLowerCase())) {
+    if (!['alfa', 'beta', 'omega', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
       console.error('[create] Tipo de plano inválido:', planType);
       throw new Error("Tipo de plano inválido");
     }
@@ -122,16 +122,16 @@ export class UserPlanController {
       // Para planos Beta e Omega criados manualmente, usar a data de expiração fornecida
       finalExpiresAt = expiresAt;
       // Garantir que a data de expiração seja no final do dia para planos Omega
-      if (planType.toLowerCase() === 'omega') {
+      if (['omega', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
         finalExpiresAt = new Date(finalExpiresAt.getFullYear(), finalExpiresAt.getMonth(), finalExpiresAt.getDate(), 23, 59, 59);
       }
       console.log('[create] Plano customizado criado manualmente com data de expiração:', finalExpiresAt);
     } else {
       // Para planos Beta e Omega comprados, usar o tempo padrão
       const now = new Date();
-      if (planType.toLowerCase() === 'beta') {
+      if (['beta', 'omega', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
         finalExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 dias
-      } else if (planType.toLowerCase() === 'omega') {
+      } else if (['elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
         // Para Omega, definir a data de expiração para o final do último dia
         const daysToAdd = 30;
         finalExpiresAt = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000);

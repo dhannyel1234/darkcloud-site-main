@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar tipo de plano
-    if (!['alfa', 'beta', 'omega'].includes(planType.toLowerCase())) {
+    if (!['alfa', 'beta', 'omega', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
       return NextResponse.json({ error: "Tipo de plano inválido" }, { status: 400 });
     }
 
@@ -74,15 +74,11 @@ export async function POST(request: NextRequest) {
       // Para Alfa, duration já está em horas
       endDate = new Date(startDate.getTime() + (duration * 60 * 60 * 1000));
     } else {
-      // Para Beta e Omega, duration já está em dias
-      // Garantir que a duração seja um número inteiro
+      // Para Beta, Omega, Elite, Prime, Plus, duration já está em dias
       const durationInDays = Math.floor(duration);
-      // Calcular milissegundos para os dias
       const durationInMs = durationInDays * 24 * 60 * 60 * 1000;
       endDate = new Date(startDate.getTime() + durationInMs);
-
-      // Para planos Omega, definir a data de expiração para o final do dia
-      if (planType.toLowerCase() === 'omega') {
+      if (['omega', 'elite', 'prime', 'plus'].includes(planType.toLowerCase())) {
         endDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59);
       }
     }

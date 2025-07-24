@@ -31,8 +31,8 @@ interface PaymentData {
 
 const planValues: Record<string, number> = {
   alfa: 4.97,
-  beta: 39.97,
-  omega: 49.97,
+  prime1: 69.97,
+  elite1: 129.97,
   prime: 79.97,
   plus: 99.97,
   elite: 149.97,

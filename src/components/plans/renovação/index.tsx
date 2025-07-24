@@ -31,9 +31,9 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       url: "/order"
     },
     {
-      name: "Omega",
+      name: "Elite 1",
       tier: "basic",
-      price: "R$49,97",
+      price: "R$129,97",
       period: "/mês",
       description: "Uma máquina para jogar moderadamente durante uma semana inteira.",
       specs: [
@@ -49,9 +49,9 @@ const Renovacao = ({ onHoverChange, hoveredIndex }: RenovacaoProps) => {
       url: "/order"
     },
     {
-      name: "Beta",
+      name: "Prime 1",
       tier: "basic",
-      price: "R$39,97",
+      price: "R$69,97",
       period: "/semana",
       description: "Uma máquina que cabe no seu bolso para jogar moderadamente o mês inteiro.",
       specs: [
